@@ -30,12 +30,20 @@ export const connectWebSocket = (login_id) => {
         // 로그인 응답 처리
         messageHandlers.forEach((handler) => handler(rawMessage));
         break;
+      case 'registration':
+        // 로그인 응답 처리
+        messageHandlers.forEach((handler) => handler(rawMessage));
+        break;
       case 'data':
-        // 데이터 업데이트 처리 (DynamoDB 형식 파싱)
+        // 데이터 업데이트 처리 (DynamoDB Steam에서 전송받은 형식 파싱)
         const parsedMessage = parseDynamoData(rawMessage);
         if (parsedMessage) {
           messageHandlers.forEach((handler) => handler(parsedMessage));
         }
+        break;
+      case 'one_day_data':
+        // 하루치 데이터 수신
+        messageHandlers.forEach((handler) => handler(rawMessage));
         break;
       default:
         console.warn('Unknown action:', rawMessage.action);
@@ -51,7 +59,7 @@ export const connectWebSocket = (login_id) => {
 export const registerMessageHandler = (handler) => {
   if (!messageHandlers.some((h) => h.toString() === handler.toString())) {
     messageHandlers.push(handler);
-    console.log('Registering handler:', handler.toString());
+    console.log('Registering handler:', handler.toString().slice(20, 55));
   } else {
     console.warn('Duplicate handler detected, skipping registration.');
   }
@@ -59,6 +67,15 @@ export const registerMessageHandler = (handler) => {
 
 // ✅ 특정 핸들러를 제거하는 함수 추가
 export const unregisterMessageHandler = (handler) => {
-  console.log('Unregistering handler:', handler.toString());
+  console.log('Unregistering handler:', handler.toString().slice(20, 55));
   messageHandlers = messageHandlers.filter(h => h !== handler);
+};
+
+export const sendMessage = (message) => {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify(message));
+    console.log('📤 Message sent:', message);
+  } else {
+    console.warn('⏳ WebSocket not ready, queuing message:', message);
+  }
 };
