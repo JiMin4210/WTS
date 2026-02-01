@@ -1,55 +1,89 @@
+// src/components/Sidebar.tsx
+import "./Sidebar.css";
 import type { DeviceSummary } from "../types";
+import { DeviceRegisterForm } from "./DeviceRegisterForm";
 
 export function Sidebar(props: {
   open: boolean;
   devices: DeviceSummary[];
   selectedDeviceId: string | null;
   onSelectDevice: (deviceId: string) => void;
+  onRemoveDevice: (deviceId: string) => void;
+  onRegistered: () => Promise<void> | void;
 }) {
   if (!props.open) return null;
 
   return (
-    <div
-      style={{
-        width: 280,
-        borderRight: "1px solid #ddd",
-        padding: 12,
-        overflowY: "auto",
-      }}
-    >
-      <b>디바이스</b>
+    <aside className="sb">
+      <div className="sb__header">
+        <div className="sb__title">디바이스</div>
+      </div>
 
-      <ul style={{ paddingLeft: 16 }}>
-        {props.devices.map((d) => (
-          <li key={d.deviceId} style={{ marginTop: 8 }}>
-            <button
-              onClick={() => props.onSelectDevice(d.deviceId)}
-              style={{
-                width: "100%",
-                textAlign: "left",
-                padding: 8,
-                borderRadius: 8,
-                border:
-                  d.deviceId === props.selectedDeviceId
-                    ? "2px solid #333"
-                    : "1px solid #ccc",
-                background:
-                  d.deviceId === props.selectedDeviceId ? "#f2f2f2" : "white",
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>{d.nickname}</div>
-              <div style={{ fontSize: 12, color: "#888" }}>{d.deviceId}</div>
-            </button>
-          </li>
-        ))}
-      </ul>
+      <div className="sb__listWrap">
+        <ul className="sb__ul">
+          {props.devices.map((d) => {
+            const active = d.deviceId === props.selectedDeviceId;
 
-      {props.devices.length === 0 && (
-        <div style={{ marginTop: 12, color: "#555" }}>
-          디바이스가 없습니다. user_devices 매핑을 확인해줘.
-        </div>
-      )}
-    </div>
+            return (
+              <li key={d.deviceId}>
+                <button
+                  className={`sb__card ${active ? "sb__card--active" : ""}`}
+                  onClick={() => props.onSelectDevice(d.deviceId)}
+                  type="button"
+                >
+                  <div className="sb__nick">{d.nickname}</div>
+                  <div className="sb__id">{d.deviceId}</div>
+
+                  <div className="sb__action">
+                    <button
+                      className="sb__trashBtn"
+                      type="button"
+                      title="삭제"
+                      aria-label="삭제"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const ok = window.confirm("이 디바이스를 삭제하시겠습니까?");
+                        if (!ok) return;
+
+                        props.onRemoveDevice(d.deviceId);
+                      }}
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        {props.devices.length === 0 && (
+          <div className="sb__empty">
+            디바이스가 없습니다. user_devices 매핑을 확인해줘.
+          </div>
+        )}
+      </div>
+
+      <div className="sb__register">
+        <div className="sb__registerTitle">디바이스 등록</div>
+        <DeviceRegisterForm onRegistered={props.onRegistered} />
+      </div>
+    </aside>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9 3h6m-8 4h10m-9 0 1 14h6l1-14M10 11v7m4-7v7"
+        stroke="#111827"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

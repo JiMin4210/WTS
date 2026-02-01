@@ -1,6 +1,7 @@
+// src/hooks/useBootstrap.ts
 import { useEffect, useRef, useState } from "react";
 import { callAppSync } from "../appsync";
-import { Q_ME, Q_LIST_MY_DEVICES } from "../queries";
+import { Q_ME, Q_LIST_MY_DEVICES, REMOVE_DEVICE } from "../queries";
 import type { DeviceSummary } from "../types";
 
 /**
@@ -20,6 +21,37 @@ export function useBootstrap() {
 
   const ranOnce = useRef(false);
 
+  function safeSetError(e: any) {
+    setError(String(e?.message ?? e));
+  }
+
+  /**
+   * ✅ 디바이스 목록 새로고침
+   * - 등록/삭제 후 호출
+   * - 선택된 디바이스가 사라졌으면 첫 디바이스로 자동 선택
+   */
+  async function refreshDevices() {
+    const dataList = await callAppSync<{ listMyDevices: DeviceSummary[] }>(Q_LIST_MY_DEVICES);
+    const next = dataList.listMyDevices ?? [];
+    setDevices(next);
+
+    // ✅ 선택값은 "함수형 업데이트"로 꼬임 방지
+    setSelectedDeviceId((prev) => {
+      if (prev && next.some((d) => d.deviceId === prev)) return prev;
+      return next.length ? next[0].deviceId : null;
+    });
+  }
+
+  /**
+   * ✅ 디바이스 삭제
+   * - 내 userId 파티션에서만 삭제됨(DynamoDB PK=userId 기반)
+   * - 삭제 후 목록 갱신
+   */
+  async function removeDevice(deviceId: string) {
+    await callAppSync<{ removeDevice: boolean }>(REMOVE_DEVICE, { deviceId });
+    await refreshDevices();
+  }
+
   useEffect(() => {
     if (ranOnce.current) return;
     ranOnce.current = true;
@@ -31,23 +63,15 @@ export function useBootstrap() {
         const dataMe = await callAppSync<{ me: string }>(Q_ME);
         setMe(dataMe.me);
 
-        const dataList = await callAppSync<{ listMyDevices: DeviceSummary[] }>(
-          Q_LIST_MY_DEVICES
-        );
-        setDevices(dataList.listMyDevices);
-
-        if (dataList.listMyDevices.length > 0) {
-          setSelectedDeviceId(dataList.listMyDevices[0].deviceId);
-        } else {
-          setSelectedDeviceId(null);
-        }
+        await refreshDevices();
       } catch (e: any) {
-        setError(String(e?.message ?? e));
+        safeSetError(e);
         setMe(null);
         setDevices([]);
         setSelectedDeviceId(null);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
@@ -58,5 +82,9 @@ export function useBootstrap() {
     setSelectedDeviceId,
     error,
     setError,
+
+    // ✅ 추가 exports
+    refreshDevices,
+    removeDevice,
   };
 }

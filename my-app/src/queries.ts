@@ -44,3 +44,18 @@ export const Q_YEARLY = /* GraphQL */ `
     }
   }
 `;
+
+export const REGISTER_DEVICE = /* GraphQL */ `
+  mutation RegisterDevice($deviceId: String!, $nickname: String!) {
+    registerDevice(deviceId: $deviceId, nickname: $nickname) {
+      deviceId
+      nickname
+    }
+  }
+`;
+
+export const REMOVE_DEVICE = /* GraphQL */ `
+  mutation RemoveDevice($deviceId: String!) {
+    removeDevice(deviceId: $deviceId)
+  }
+`;

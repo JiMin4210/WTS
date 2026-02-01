@@ -1,3 +1,4 @@
+// src/App.tsx
 import { useState } from "react";
 import { signInWithRedirect, signOut } from "aws-amplify/auth";
 
@@ -66,6 +67,9 @@ export default function App() {
         devices={bootstrap.devices}
         selectedDeviceId={bootstrap.selectedDeviceId}
         onSelectDevice={(id) => bootstrap.setSelectedDeviceId(id)}
+        // ✅ 추가: 삭제 / 등록 후 갱신
+        onRemoveDevice={(id) => bootstrap.removeDevice(id)}
+        onRegistered={() => bootstrap.refreshDevices()}
       />
 
       <div style={{ flex: 1, padding: 16 }}>
@@ -147,6 +151,7 @@ export default function App() {
           />
         </div>
 
+        {/* ✅ 요구사항대로 유지: selectedDeviceId 표시 / tab 표시 */}
         <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>
           selectedDeviceId: {bootstrap.selectedDeviceId ?? "(none)"} / tab: {tab}
         </div>
