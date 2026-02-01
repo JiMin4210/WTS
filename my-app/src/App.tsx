@@ -7,7 +7,7 @@ import { useSeries } from "./hooks/useSeries";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { Tabs } from "./components/Tabs";
-import { SeriesTable } from "./components/SeriesTable";
+import { SeriesChart } from "./components/SeriesChart";
 
 import type { Tab } from "./types";
 
@@ -138,7 +138,13 @@ export default function App() {
 
         <div style={{ marginTop: 16 }}>
           <h3 style={{ marginBottom: 8 }}>데이터(임시 리스트)</h3>
-          <SeriesTable points={series.points} />
+          <SeriesChart
+            points={series.points}
+            tab={tab}
+            dayDate={dayDate}
+            monthYearMonth={monthYearMonth}
+            year={year}
+          />
         </div>
 
         <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>

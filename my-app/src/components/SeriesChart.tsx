@@ -1,0 +1,260 @@
+import type { Point, Tab } from "../types";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+  LabelList,
+} from "recharts";
+
+export function SeriesChart(props: {
+  points: Point[];
+  tab: Tab;
+  dayDate: string;        // "YYYY-MM-DD"
+  monthYearMonth: string; // "YYYY-MM"
+  year: string;           // "YYYY"
+}) {
+  const { points, tab, dayDate, monthYearMonth, year } = props;
+
+  // 1) points → "2자리 키"로 정규화해서 Map 저장
+  const map = new Map<string, number>();
+  for (const p of points ?? []) {
+    const key = normalizeKey(p.x);
+    const y = typeof p.y === "number" ? p.y : Number(p.y ?? 0);
+    map.set(key, Number.isFinite(y) ? y : 0);
+  }
+
+  // 2) 탭별 전체 구간 생성(빈 구간 0 채움)
+  const data = buildFilledData(tab, { dayDate, monthYearMonth, year }, map);
+  if (!data || data.length === 0) {
+    return (
+      <div style={{ color: "#666" }}>
+        데이터가 없거나 아직 디바이스/탭이 선택되지 않았습니다.
+      </div>
+    );
+  }
+
+  // 3) 축 설명(축에 붙일 라벨)
+  const axisInfo = getAxisInfo(tab, { dayDate, monthYearMonth, year });
+
+  // 4) Tooltip 라벨(사람이 읽기 좋게)
+  const tooltipLabel = (xKey: string) => {
+    if (tab === "day") return `${dayDate} ${xKey}시`;
+    if (tab === "month") return `${monthYearMonth}-${xKey}`;
+    return `${year}-${xKey}`;
+  };
+
+  // 5) ✅ 탭별 “답답함 해소 프리셋”
+  const preset = getPreset(tab, data.length);
+
+  // 6) ✅ X축 라벨 스킵(너무 촘촘하면 자동 생략)
+  const xInterval = calcTickInterval(tab, data.length);
+
+  // 7) ✅ X축 라벨 텍스트를 탭별로 더 직관적으로
+  // - month: "01" -> "1" (일자)
+  // - year:  "01" -> "1" (월)
+  const tickFormatter = (v: any) => {
+    const s = String(v);
+    if (tab === "day") return s; // 00~23 유지
+    // month/year는 사람이 01보다 1이 더 빨리 읽음
+    const n = Number(s);
+    return Number.isFinite(n) ? String(n) : s;
+  };
+
+  return (
+    <div style={{ width: "100%", height: 400 }}>
+      <ResponsiveContainer>
+        <BarChart
+          data={data}
+          margin={preset.margin}
+          barCategoryGap={preset.barCategoryGap}
+          barGap={preset.barGap}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+
+          {/* ✅ X축: 좌/우 padding으로 "왼쪽에 붙는 느낌" 제거 */}
+          <XAxis
+            dataKey="x"
+            interval={xInterval}
+            padding={preset.xPadding}
+            tickMargin={10}
+            tickFormatter={tickFormatter}
+            label={{
+              value: axisInfo.xLabel,
+              position: "insideBottom",
+              offset: -12,
+            }}
+          />
+
+          {/* ✅ Y축: 생산량 라벨(왼쪽) + 위쪽 짤림 방지 여유는 margin.top에서 */}
+          <YAxis
+            allowDecimals={false}
+            tickMargin={6}
+            label={{
+              value: "생산량(개)",
+              angle: -90,
+              position: "insideLeft",
+              offset: 0,
+            }}
+          />
+
+          <Tooltip
+            labelFormatter={(label) => tooltipLabel(String(label))}
+            formatter={(value) => [value, "생산량"]}
+          />
+
+          {/* ✅ 막대: 탭별 두께(barSize)로 답답함 해소 */}
+          <Bar dataKey="y" isAnimationActive={false} barSize={preset.barSize}>
+            {/* ✅ 값 라벨: 0은 숨김, 위쪽 짤림 방지를 위해 offset 조정 */}
+            <LabelList
+              dataKey="y"
+              position="top"
+              offset={6}
+              formatter={hideZeroLabel}
+            />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+/**
+ * 탭별 “보기 좋은 프리셋”
+ * 목표:
+ * - 첫 막대가 y축에 붙지 않게(좌/우 padding)
+ * - 막대가 너무 두껍지 않게(barSize)
+ * - 카테고리 간격 충분히(barCategoryGap)
+ * - 라벨/값이 위아래로 안 잘리게(margin)
+ */
+function getPreset(tab: Tab, count: number) {
+  if (tab === "year") {
+    return {
+      // 연: 12개라 여유가 많음 → 막대 조금 두껍게, 간격 넉넉하게
+      barSize: 26,
+      barCategoryGap: "38%",
+      barGap: 2,
+      xPadding: { left: 26, right: 26 },
+      margin: { top: 34, right: 24, left: 28, bottom: 34 },
+    };
+  }
+
+  if (tab === "month") {
+    // 월: 28~31개 → 막대 얇게 + 간격 많이 + 좌우 패딩 더 주기
+    const barSize = count >= 30 ? 9 : 11;
+    return {
+      barSize,
+      barCategoryGap: "50%",
+      barGap: 2,
+      xPadding: { left: 24, right: 24 },
+      margin: { top: 36, right: 24, left: 30, bottom: 34 },
+    };
+  }
+
+  // day: 24개 → 월보단 덜 촘촘하지만 답답할 수 있음
+  return {
+    barSize: 12,
+    barCategoryGap: "42%",
+    barGap: 2,
+    xPadding: { left: 22, right: 22 },
+    margin: { top: 36, right: 24, left: 30, bottom: 34 },
+  };
+}
+
+/**
+ * 라벨 스킵(가독성)
+ * - day(24): 모두 표시하면 빽빽 → 1~2 간격 스킵 추천
+ * - month(28~31): 2~3 간격 스킵
+ * - year(12): 전부 표시
+ *
+ * Recharts interval:
+ * - 0: 모두 표시
+ * - 1: 하나씩 건너뜀
+ * - 2: 2개씩 건너뜀 ...
+ */
+function calcTickInterval(tab: Tab, count: number) {
+  if (tab === "year") return 0;
+
+  if (tab === "month") {
+    if (count >= 31) return 2;
+    if (count >= 28) return 2;
+    if (count >= 20) return 1;
+    return 0;
+  }
+
+  // day
+  // 24개를 전부 표시하면 “00~23”이 촘촘하게 느껴질 수 있음
+  // 2시간 간격 정도로 보이면 더 시원해짐
+  return 1; // 0이면 전부, 1이면 2칸에 하나
+}
+
+function normalizeKey(x: string) {
+  const s = String(x);
+  const digits = s.replace(/\D/g, "");
+  if (digits.length >= 2) return digits.slice(-2);
+  if (digits.length === 1) return `0${digits}`;
+  return "00";
+}
+
+function buildFilledData(
+  tab: Tab,
+  ctx: { dayDate: string; monthYearMonth: string; year: string },
+  map: Map<string, number>
+) {
+  if (tab === "day") {
+    const arr = [];
+    for (let h = 0; h < 24; h++) {
+      const key = pad2(h);
+      arr.push({ x: key, y: map.get(key) ?? 0 });
+    }
+    return arr;
+  }
+
+  if (tab === "month") {
+    const days = daysInMonth(ctx.monthYearMonth);
+    const arr = [];
+    for (let d = 1; d <= days; d++) {
+      const key = pad2(d);
+      arr.push({ x: key, y: map.get(key) ?? 0 });
+    }
+    return arr;
+  }
+
+  const arr = [];
+  for (let m = 1; m <= 12; m++) {
+    const key = pad2(m);
+    arr.push({ x: key, y: map.get(key) ?? 0 });
+  }
+  return arr;
+}
+
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function daysInMonth(yearMonth: string) {
+  const [yStr, mStr] = String(yearMonth).split("-");
+  const y = Number(yStr);
+  const m = Number(mStr);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12) return 31;
+  return new Date(y, m, 0).getDate();
+}
+
+function hideZeroLabel(v: any) {
+  const n = Number(v);
+  if (!Number.isFinite(n) || n === 0) return "";
+  return String(n);
+}
+
+function getAxisInfo(tab: Tab, ctx: { dayDate: string; monthYearMonth: string; year: string }) {
+  if (tab === "day") {
+    return { xLabel: "시간(00~23)" };
+  }
+  if (tab === "month") {
+    return { xLabel: "일(1~말일)" };
+  }
+  return { xLabel: "월(1~12)" };
+}
