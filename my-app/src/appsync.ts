@@ -1,6 +1,13 @@
 // src/appsync.ts
 import { fetchAuthSession } from "aws-amplify/auth";
 
+/**
+ * GraphQL POST를 직접 날리는 방식.
+ * - 장점: 동작이 투명해서 디버깅이 쉬움(초보자에게 유리)
+ * - 핵심: Authorization 헤더에 JWT를 넣는다.
+ *   AppSync(Cognito User Pools)는 이 JWT를 보고 사용자를 식별한다. :contentReference[oaicite:2]{index=2}
+ */
+
 // 개발 모드 여부 (Vite 제공)
 const isDev = import.meta.env.DEV;
 
@@ -48,11 +55,14 @@ export async function callAppSync<T>(
     variables: variables ?? null,
   });
 
+  // 2) AppSync endpoint로 GraphQL POST
   const res = await fetch(import.meta.env.VITE_APPSYNC_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: idToken,
+      // 만약 401이 계속이면 아래처럼 Bearer를 붙여보는 경우도 있음(환경별 차이 대응)
+      // Authorization: `Bearer ${idToken}`,
     },
     body: JSON.stringify({ query, variables }),
   });
