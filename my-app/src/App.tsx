@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { signInWithRedirect, signOut } from "aws-amplify/auth";
 import { callAppSync } from "./appsync";
 import { Q_LIST_MY_DEVICES, Q_ME } from "./queries";
@@ -12,12 +12,18 @@ export default function App() {
   const [devices, setDevices] = useState<DeviceSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+
+  const ranOnce = useRef(false);
+
   /**
    * 1) 페이지가 열리면:
    * - 이미 로그인된 상태면 토큰이 존재해서 호출이 된다.
    * - 로그인 안 됐으면 callAppSync에서 "로그인 필요" 에러가 난다.
    */
   useEffect(() => {
+    if (ranOnce.current) return;
+    ranOnce.current = true;
+    
     (async () => {
       try {
         setError(null);
