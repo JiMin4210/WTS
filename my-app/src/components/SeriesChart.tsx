@@ -38,7 +38,7 @@ export function SeriesChart(props: {
   }
 
   // 3) 축 설명(축에 붙일 라벨)
-  const axisInfo = getAxisInfo(tab, { dayDate, monthYearMonth, year });
+  const axisInfo = getAxisInfo(tab);
 
   // 4) Tooltip 라벨(사람이 읽기 좋게)
   const tooltipLabel = (xKey: string) => {
@@ -249,7 +249,7 @@ function hideZeroLabel(v: any) {
   return String(n);
 }
 
-function getAxisInfo(tab: Tab, ctx: { dayDate: string; monthYearMonth: string; year: string }) {
+function getAxisInfo(tab: Tab) {
   if (tab === "day") {
     return { xLabel: "시간(00~23)" };
   }

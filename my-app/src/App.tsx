@@ -207,8 +207,8 @@ export default function App() {
                     background: "white",
                     cursor: "pointer",
                   }}
-                  disabled={!bootstrap.selectedDeviceId || devLast.loading} // 이거는 왜 필요한지?
-                  title="선택된 디바이스의 상태 정보를 다시 불러옵니다." // 이거는 왜 필요한지?
+                  disabled={!bootstrap.selectedDeviceId || devLast.loading} // 디바이스를 아직 안 골랐거나 / 이미 조회 중일 때 버튼을 눌러도 의미가 없거나(대상 없음), 중복 요청이 연속으로 나가서 비용·혼선이 생길 수 있어서 막아둔 것
+                  title="선택된 디바이스의 상태 정보를 다시 불러옵니다." // 버튼에 마우스를 올리면 뜨는 **툴팁(설명말)**이라서, 사용자가 “이 버튼이 뭘 하는지” 바로 이해하고, 접근성(키보드/보조기기)에도 도움됨
                 >
                   ↻ 상태 새로고침
                 </button>
