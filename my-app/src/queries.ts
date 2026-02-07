@@ -45,7 +45,7 @@ export const Q_YEARLY = /* GraphQL */ `
   }
 `;
 
-export const REGISTER_DEVICE = /* GraphQL */ `
+export const Q_REGISTER_DEVICE = /* GraphQL */ `
   mutation RegisterDevice($deviceId: String!, $nickname: String!) {
     registerDevice(deviceId: $deviceId, nickname: $nickname) {
       deviceId
@@ -54,8 +54,21 @@ export const REGISTER_DEVICE = /* GraphQL */ `
   }
 `;
 
-export const REMOVE_DEVICE = /* GraphQL */ `
+export const Q_REMOVE_DEVICE = /* GraphQL */ `
   mutation RemoveDevice($deviceId: String!) {
     removeDevice(deviceId: $deviceId)
+  }
+`;
+
+// ✅ 선택된 디바이스의 마지막 수신 시간(온라인/오프라인 판단용)
+// (B버전: 목록 전체가 아니라 "선택된 1대"만 조회)
+export const Q_GET_DEVICE_LAST = /* GraphQL */ `
+  query GetDeviceLast($deviceId: String!) {
+    getDeviceLast(deviceId: $deviceId) {
+      deviceId
+      lastServerTs
+      lastTotal
+      lastReason
+    }
   }
 `;

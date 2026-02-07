@@ -1,7 +1,7 @@
 // src/components/DeviceRegisterForm.tsx
 import { useState } from "react";
 import { callAppSync } from "../appsync";
-import { REGISTER_DEVICE } from "../queries";
+import { Q_REGISTER_DEVICE } from "../queries";
 import type { DeviceSummary } from "../types";
 
 export function DeviceRegisterForm(props: { onRegistered: () => Promise<void> | void }) {
@@ -39,7 +39,7 @@ export function DeviceRegisterForm(props: { onRegistered: () => Promise<void> | 
 
     setBusy(true);
     try {
-      await callAppSync<{ registerDevice: DeviceSummary }>(REGISTER_DEVICE, {
+      await callAppSync<{ registerDevice: DeviceSummary }>(Q_REGISTER_DEVICE, {
         deviceId: did,
         nickname: name,
       });

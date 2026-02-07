@@ -1,7 +1,7 @@
 // src/hooks/useBootstrap.ts
 import { useEffect, useRef, useState } from "react";
 import { callAppSync } from "../appsync";
-import { Q_ME, Q_LIST_MY_DEVICES, REMOVE_DEVICE } from "../queries";
+import { Q_ME, Q_LIST_MY_DEVICES, Q_REMOVE_DEVICE } from "../queries";
 import type { DeviceSummary } from "../types";
 
 /**
@@ -48,7 +48,7 @@ export function useBootstrap() {
    * - 삭제 후 목록 갱신
    */
   async function removeDevice(deviceId: string) {
-    await callAppSync<{ removeDevice: boolean }>(REMOVE_DEVICE, { deviceId });
+    await callAppSync<{ removeDevice: boolean }>(Q_REMOVE_DEVICE, { deviceId });
     await refreshDevices();
   }
 
