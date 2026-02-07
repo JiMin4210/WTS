@@ -19,8 +19,8 @@ export function configureAmplify() {
           oauth: {
             domain: import.meta.env.VITE_COGNITO_DOMAIN.replace("https://", ""),
             scopes: ["openid", "email"], // 최소 스코프
-            redirectSignIn: [import.meta.env.VITE_REDIRECT_SIGN_IN],
-            redirectSignOut: [import.meta.env.VITE_REDIRECT_SIGN_OUT],
+            redirectSignIn: [`${origin}/`],
+            redirectSignOut: [`${origin}/`],
             responseType: "code", // 너가 이미 쓰던 방식(Authorization Code)
           },
         },
