@@ -13,6 +13,9 @@ import { SeriesChart } from "./components/SeriesChart";
 
 import type { Tab } from "./types";
 
+import { Routes, Route, Navigate } from "react-router-dom";
+import { AdminPage } from "./pages/AdminPage";
+
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -128,165 +131,176 @@ export default function App() {
   const st = computeStatus(lastServerTsMs);
 
   return (
-    <div style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}>
-      <Sidebar
-        open={sidebarOpen}
-        devices={bootstrap.devices}
-        selectedDeviceId={bootstrap.selectedDeviceId}
-        onSelectDevice={(id) => bootstrap.setSelectedDeviceId(id)}
-	// ✅ 추가: 삭제 / 등록 후 갱신
-        onRemoveDevice={(id) => bootstrap.removeDevice(id)}
-        onRegistered={() => bootstrap.refreshDevices()}
-      />
+    <Routes>
+      <Route path="/admin" element={<AdminPage />} />
 
-      <div style={{ flex: 1, padding: 16 }}>
-        <TopBar
-          onToggleSidebar={() => setSidebarOpen((v) => !v)}
-          isLoggedIn={bootstrap.isLoggedIn}
-          onLogin={() => signInWithRedirect()}
-          onLogout={() => signOut({ global: true })}
-          me={bootstrap.me}
-        />
+      <Route
+        path="/"
+        element={
+          <div style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}>
+            <Sidebar
+              open={sidebarOpen}
+              devices={bootstrap.devices}
+              selectedDeviceId={bootstrap.selectedDeviceId}
+              onSelectDevice={(id) => bootstrap.setSelectedDeviceId(id)}
+              // ✅ 추가: 삭제 / 등록 후 갱신
+              onRemoveDevice={(id) => bootstrap.removeDevice(id)}
+              onRegistered={() => bootstrap.refreshDevices()}
+            />
 
-        <Tabs tab={tab} onChange={setTab} />
+            <div style={{ flex: 1, padding: 16 }}>
+              <TopBar
+                onToggleSidebar={() => setSidebarOpen((v) => !v)}
+                isLoggedIn={bootstrap.isLoggedIn}
+                onLogin={() => signInWithRedirect()}
+                onLogout={() => signOut({ global: true })}
+                me={bootstrap.me}
+              />
 
-        {/* 탭별 컨트롤 */}
-        <div
-          style={{
-            marginTop: 12,
-            padding: 12,
-            border: "1px solid #ddd",
-            borderRadius: 8,
-          }}
-        >
-          {!bootstrap.selectedDeviceId ? (
-            <div>좌측에서 디바이스를 선택해주세요.</div>
-          ) : (
-            <>
-              {/* 날짜 이동 */}
-              {tab === "day" && (
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <button onClick={() => moveDay(-1)}>◀</button>
-                  <b>{dayDate}</b>
-                  <button onClick={() => moveDay(+1)}>▶</button>
-                </div>
-              )}
+              <Tabs tab={tab} onChange={setTab} />
 
-              {tab === "month" && (
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <button onClick={() => moveMonth(-1)}>◀</button>
-                  <b>{monthYearMonth}</b>
-                  <button onClick={() => moveMonth(+1)}>▶</button>
-                </div>
-              )}
-
-              {tab === "year" && (
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <button onClick={() => moveYear(-1)}>◀</button>
-                  <b>{year}</b>
-                  <button onClick={() => moveYear(+1)}>▶</button>
-                </div>
-              )}
-
-              {/* ✅ 선택된 1대 상태 표시 + 새로고침 */}
+              {/* 탭별 컨트롤 */}
               <div
                 style={{
-                  marginTop: 10,
-                  display: "flex",
-                  gap: 10,
-                  alignItems: "center",
-                  flexWrap: "wrap",
+                  marginTop: 12,
+                  padding: 12,
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
                 }}
               >
-                <button
-                  onClick={refreshStatus}
-                  style={{
-                    padding: "6px 10px",
-                    borderRadius: 8,
-                    border: "1px solid #ccc",
-                    background: "white",
-                    cursor: "pointer",
-                  }}
-                  disabled={!bootstrap.selectedDeviceId || devLast.loading} // 디바이스를 아직 안 골랐거나 / 이미 조회 중일 때 버튼을 눌러도 의미가 없거나(대상 없음), 중복 요청이 연속으로 나가서 비용·혼선이 생길 수 있어서 막아둔 것
-                  title="선택된 디바이스의 상태 정보를 다시 불러옵니다." // 버튼에 마우스를 올리면 뜨는 **툴팁(설명말)**이라서, 사용자가 “이 버튼이 뭘 하는지” 바로 이해하고, 접근성(키보드/보조기기)에도 도움됨
-                >
-                  ↻ 상태 새로고침
-                </button>
-
-                {/* 상태 뱃지 */}
-                {devLast.loading ? (
-                  <span style={{ fontSize: 12, color: "#666" }}>상태 확인 중…</span>
-                ) : devLast.error ? (
-                  <span style={{ fontSize: 12, color: "#b00" }}>
-                    ⚠️ 상태 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
-                  </span>
+                {!bootstrap.selectedDeviceId ? (
+                  <div>좌측에서 디바이스를 선택해주세요.</div>
                 ) : (
-                  <span
-                    style={{
-                      fontSize: 12,
-                      padding: "4px 10px",
-                      borderRadius: 999,
-                      border: "1px solid #ddd",
-                      background:
-                        st.tone === "online"
-                          ? "#eafff1"
-                          : st.tone === "warn"
-                          ? "#fff7df"
-                          : st.tone === "offline"
-                          ? "#ffecec"
-                          : "#f4f4f4",
-                    }}
-                  >
-                    {st.text}
-                  </span>
+                  <>
+                    {/* 날짜 이동 */}
+                    {tab === "day" && (
+                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <button onClick={() => moveDay(-1)}>◀</button>
+                        <b>{dayDate}</b>
+                        <button onClick={() => moveDay(+1)}>▶</button>
+                      </div>
+                    )}
+
+                    {tab === "month" && (
+                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <button onClick={() => moveMonth(-1)}>◀</button>
+                        <b>{monthYearMonth}</b>
+                        <button onClick={() => moveMonth(+1)}>▶</button>
+                      </div>
+                    )}
+
+                    {tab === "year" && (
+                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <button onClick={() => moveYear(-1)}>◀</button>
+                        <b>{year}</b>
+                        <button onClick={() => moveYear(+1)}>▶</button>
+                      </div>
+                    )}
+
+                    {/* ✅ 선택된 1대 상태 표시 + 새로고침 */}
+                    <div
+                      style={{
+                        marginTop: 10,
+                        display: "flex",
+                        gap: 10,
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <button
+                        onClick={refreshStatus}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: 8,
+                          border: "1px solid #ccc",
+                          background: "white",
+                          cursor: "pointer",
+                        }}
+                        disabled={!bootstrap.selectedDeviceId || devLast.loading} // 디바이스를 아직 안 골랐거나 / 이미 조회 중일 때 버튼을 눌러도 의미가 없거나(대상 없음), 중복 요청이 연속으로 나가서 비용·혼선이 생길 수 있어서 막아둔 것
+                        title="선택된 디바이스의 상태 정보를 다시 불러옵니다." // 버튼에 마우스를 올리면 뜨는 **툴팁(설명말)**이라서, 사용자가 “이 버튼이 뭘 하는지” 바로 이해하고, 접근성(키보드/보조기기)에도 도움됨
+                      >
+                        ↻ 상태 새로고침
+                      </button>
+
+                      {/* 상태 뱃지 */}
+                      {devLast.loading ? (
+                        <span style={{ fontSize: 12, color: "#666" }}>상태 확인 중…</span>
+                      ) : devLast.error ? (
+                        <span style={{ fontSize: 12, color: "#b00" }}>
+                          ⚠️ 상태 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: 12,
+                            padding: "4px 10px",
+                            borderRadius: 999,
+                            border: "1px solid #ddd",
+                            background:
+                              st.tone === "online"
+                                ? "#eafff1"
+                                : st.tone === "warn"
+                                  ? "#fff7df"
+                                  : st.tone === "offline"
+                                    ? "#ffecec"
+                                    : "#f4f4f4",
+                          }}
+                        >
+                          {st.text}
+                        </span>
+                      )}
+
+                      {/* ✅ 사용자 기준 "상태 확인 시각" */}
+                      <span style={{ fontSize: 12, color: "#777" }}>
+                        상태 확인 시각: {lastCheckedAt ? formatDateTime(lastCheckedAt) : "-"}
+                      </span>
+
+                      {/* ✅ 기기 기준 "최종 수신 시각" */}
+                      <span style={{ fontSize: 12, color: "#777" }}>
+                        기기 최종 수신 시각: {lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}
+                      </span>
+                    </div>
+                  </>
                 )}
-
-                {/* ✅ 사용자 기준 "상태 확인 시각" */}
-                <span style={{ fontSize: 12, color: "#777" }}>
-                  상태 확인 시각: {lastCheckedAt ? formatDateTime(lastCheckedAt) : "-"}
-                </span>
-
-                {/* ✅ 기기 기준 "최종 수신 시각" */}
-                <span style={{ fontSize: 12, color: "#777" }}>
-                  기기 최종 수신 시각: {lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}
-                </span>
               </div>
-            </>
-          )}
-        </div>
 
-        {series.loading && <div style={{ marginTop: 12 }}>로딩 중...</div>}
+              {series.loading && <div style={{ marginTop: 12 }}>로딩 중...</div>}
 
-        {(bootstrap.error || series.error) && (
-          <pre
-            style={{
-              whiteSpace: "pre-wrap",
-              marginTop: 12,
-              background: "#111",
-              color: "#fff",
-              padding: 12,
-              borderRadius: 8,
-            }}
-          >
-            {bootstrap.error ?? series.error}
-          </pre>
-        )}
+              {(bootstrap.error || series.error) && (
+                <pre
+                  style={{
+                    whiteSpace: "pre-wrap",
+                    marginTop: 12,
+                    background: "#111",
+                    color: "#fff",
+                    padding: 12,
+                    borderRadius: 8,
+                  }}
+                >
+                  {bootstrap.error ?? series.error}
+                </pre>
+              )}
 
-        <div style={{ marginTop: 16 }}>
-          <h3 style={{ marginBottom: 8 }}>데이터(임시 리스트)</h3>
-          <SeriesChart
-            points={series.points}
-            tab={tab}
-            dayDate={dayDate}
-            monthYearMonth={monthYearMonth}
-            year={year}
-          />
-        </div>
+              <div style={{ marginTop: 16 }}>
+                <h3 style={{ marginBottom: 8 }}>데이터(임시 리스트)</h3>
+                <SeriesChart
+                  points={series.points}
+                  tab={tab}
+                  dayDate={dayDate}
+                  monthYearMonth={monthYearMonth}
+                  year={year}
+                />
+              </div>
 
-        <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>
-          selectedDeviceId: {bootstrap.selectedDeviceId ?? "(none)"} / tab: {tab}
-        </div>
-      </div>
-    </div>
+              <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>
+                selectedDeviceId: {bootstrap.selectedDeviceId ?? "(none)"} / tab: {tab}
+              </div>
+            </div>
+          </div>
+        }
+      />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

@@ -72,3 +72,15 @@ export const Q_GET_DEVICE_LAST = /* GraphQL */ `
     }
   }
 `;
+
+export const Q_ADMIN_LIST_DEVICE_LAST = /* GraphQL */ `
+  query AdminListDeviceLast($limit: Int) {
+    adminListDeviceLast(limit: $limit) {
+      deviceId
+      lastTotal
+      lastServerTs
+      lastReason
+      lastDelta
+    }
+  }
+`;
