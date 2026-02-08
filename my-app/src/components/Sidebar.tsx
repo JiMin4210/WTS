@@ -61,7 +61,7 @@ export function Sidebar(props: {
 
         {props.devices.length === 0 && (
           <div className="sb__empty">
-            디바이스가 없습니다. user_devices 매핑을 확인해줘.
+            디바이스가 없습니다. user_devices 매핑을 확인해주세요.
           </div>
         )}
       </div>

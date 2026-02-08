@@ -160,7 +160,7 @@ export default function App() {
           }}
         >
           {!bootstrap.selectedDeviceId ? (
-            <div>좌측에서 디바이스를 선택해줘.</div>
+            <div>좌측에서 디바이스를 선택해주세요.</div>
           ) : (
             <>
               {/* 날짜 이동 */}
