@@ -23,6 +23,17 @@ jobs:
           cache: npm
           cache-dependency-path: my-app/package-lock.json  # ✅ 캐시 정확도 향상
 
+      - name: Create .env for build
+        working-directory: my-app
+        run: |
+          cat > .env << 'EOF'
+          VITE_AWS_REGION=${{ secrets.VITE_AWS_REGION }}
+          VITE_COGNITO_USER_POOL_ID=${{ secrets.VITE_COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_USER_POOL_CLIENT_ID=${{ secrets.VITE_COGNITO_USER_POOL_CLIENT_ID }}
+          VITE_COGNITO_DOMAIN=${{ secrets.VITE_COGNITO_DOMAIN }}
+          VITE_APPSYNC_URL=${{ secrets.VITE_APPSYNC_URL }}
+          EOF
+
       - name: Install dependencies
         working-directory: my-app
         run: npm ci
