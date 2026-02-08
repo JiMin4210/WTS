@@ -37,32 +37,7 @@
 ---
 
 ## 2. 전체 아키텍처
-
-[ESP32 / Python Simulator]
-        |
-        | MQTT (total counter)
-        v
-[AWS IoT Core]
-        |
-        | IoT Rule
-        v
-[AWS Lambda]
-  - delta 계산
-  - 오버플로우 방어
-        |
-        v
-[DynamoDB]
-  - device_ts
-  - device_agg
-  - device_last
-        |
-        v
-[AWS AppSync]
-        |
-        v
-[Web App (React)]
-  - 사용자 페이지
-  - 운영자 페이지 (/admin)
+<img width="1912" height="975" alt="image" src="https://github.com/user-attachments/assets/7ca5818f-4c15-4754-a385-8088067008c1" />
 
 ---
 
