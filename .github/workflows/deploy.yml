@@ -1,0 +1,60 @@
+name: Deploy Web (my-app -> S3 + CloudFront)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "my-app/**"          # ✅ my-app 폴더 변경시에만 실행
+      - ".github/workflows/deploy.yml"  # 워크플로 수정 시에도 실행
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: my-app/package-lock.json  # ✅ 캐시 정확도 향상
+
+      - name: Create .env for build
+        working-directory: my-app
+        run: |
+          cat > .env << 'EOF'
+          VITE_AWS_REGION=${{ secrets.VITE_AWS_REGION }}
+          VITE_COGNITO_USER_POOL_ID=${{ secrets.VITE_COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_USER_POOL_CLIENT_ID=${{ secrets.VITE_COGNITO_USER_POOL_CLIENT_ID }}
+          VITE_COGNITO_DOMAIN=${{ secrets.VITE_COGNITO_DOMAIN }}
+          VITE_APPSYNC_URL=${{ secrets.VITE_APPSYNC_URL }}
+          EOF
+
+      - name: Install dependencies
+        working-directory: my-app
+        run: npm ci
+
+      - name: Build
+        working-directory: my-app
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync my-app/dist s3://${{ secrets.S3_BUCKET }} --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CF_DISTRIBUTION_ID }} \
+            --paths "/*"
