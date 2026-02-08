@@ -106,6 +106,26 @@ export default function App() {
     year,
   });
 
+    // ✅ "선택된 디바이스"의 모든 관련 데이터 새로고침
+  // - device_last(상태) + 현재 탭 시계열(생산량)
+  // - 추후 원격제어 상태/설정값 등도 여기에 추가하면 한 번에 갱신 가능
+  async function refreshDeviceAll() {
+    if (!bootstrap.selectedDeviceId) return;
+
+    // 병렬로 갱신(체감 속도 개선)
+    await Promise.all([
+      devLast.refresh(),
+      series.refresh(),
+      // 추후 추가 예시:
+      // deviceConfig.refresh(),
+      // deviceSettings.refresh(),
+      // alerts.refresh(),
+    ]);
+
+    // "상태 확인 시각"은 사용자 새로고침 기준으로 기록
+    setLastCheckedAt(Date.now());
+  }
+
   // 4) 날짜/월/연 이동
   function moveDay(delta: number) {
     const d = new Date(dayDate + "T00:00:00");
@@ -119,11 +139,6 @@ export default function App() {
   }
   function moveYear(delta: number) {
     setYear(String(Number(year) + delta));
-  }
-
-  async function refreshStatus() {
-    await devLast.refresh();
-    setLastCheckedAt(Date.now());
   }
 
   // ✅ 표시용 값 준비
@@ -208,7 +223,7 @@ export default function App() {
                       }}
                     >
                       <button
-                        onClick={refreshStatus}
+                        onClick={refreshDeviceAll}
                         style={{
                           padding: "6px 10px",
                           borderRadius: 8,
@@ -216,7 +231,7 @@ export default function App() {
                           background: "white",
                           cursor: "pointer",
                         }}
-                        disabled={!bootstrap.selectedDeviceId || devLast.loading} // 디바이스를 아직 안 골랐거나 / 이미 조회 중일 때 버튼을 눌러도 의미가 없거나(대상 없음), 중복 요청이 연속으로 나가서 비용·혼선이 생길 수 있어서 막아둔 것
+                        disabled={!bootstrap.selectedDeviceId || devLast.loading || series.loading} // 디바이스를 아직 안 골랐거나 / 이미 조회 중일 때 버튼을 눌러도 의미가 없거나(대상 없음), 중복 요청이 연속으로 나가서 비용·혼선이 생길 수 있어서 막아둔 것
                         title="선택된 디바이스의 상태 정보를 다시 불러옵니다." // 버튼에 마우스를 올리면 뜨는 **툴팁(설명말)**이라서, 사용자가 “이 버튼이 뭘 하는지” 바로 이해하고, 접근성(키보드/보조기기)에도 도움됨
                       >
                         ↻ 상태 새로고침
