@@ -16,6 +16,25 @@ import type { Tab } from "./types";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AdminPage } from "./pages/AdminPage";
 
+// ✅ 사이드바 기본 동작(모바일/좁은 화면에서 닫아두는 기본값)
+// - "차별 UI"가 아니라, 기본 열림/닫힘만 다르게 잡는 정도로만 사용
+// - 마음이 바뀌면 DEFAULT_SIDEBAR_OPEN_ON_NARROW 값을 true로 바꾸면 됨
+const SIDEBAR_NARROW_PX = 768;
+const DEFAULT_SIDEBAR_OPEN_ON_NARROW = false;
+const SIDEBAR_OPEN_KEY = "wts_sidebar_open";
+
+function getInitialSidebarOpen() {
+  try {
+    const saved = localStorage.getItem(SIDEBAR_OPEN_KEY);
+    if (saved === "1") return true;
+    if (saved === "0") return false;
+  } catch {}
+  if (typeof window !== "undefined" && window.innerWidth < SIDEBAR_NARROW_PX) {
+    return DEFAULT_SIDEBAR_OPEN_ON_NARROW;
+  }
+  return true;
+}
+
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -69,7 +88,7 @@ export default function App() {
   const bootstrap = useBootstrap();
 
   // 2) UI 상태
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(getInitialSidebarOpen());
   const [tab, setTab] = useState<Tab>("day");
 
   const [dayDate, setDayDate] = useState(formatDate(new Date()));
@@ -165,7 +184,11 @@ export default function App() {
 
             <div style={{ flex: 1, padding: 16 }}>
               <TopBar
-                onToggleSidebar={() => setSidebarOpen((v) => !v)}
+                onToggleSidebar={() => setSidebarOpen((v) => {
+            const next = !v;
+            try { localStorage.setItem(SIDEBAR_OPEN_KEY, next ? "1" : "0"); } catch {}
+            return next;
+          })}
                 isLoggedIn={bootstrap.isLoggedIn}
                 onLogin={() => signInWithRedirect()}
                 onLogout={() => signOut({ global: true })}

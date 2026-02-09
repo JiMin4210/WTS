@@ -37,7 +37,7 @@ export function SeriesChart(props: {
     );
   }
 
-  // 3) 축 설명(축에 붙일 라벨)
+  // 3) 축 설명(차트 위에 작은 글씨로 표시)
   const axisInfo = getAxisInfo(tab);
 
   // 4) Tooltip 라벨(사람이 읽기 좋게)
@@ -64,8 +64,28 @@ export function SeriesChart(props: {
     return Number.isFinite(n) ? String(n) : s;
   };
 
+  // ✅ 값 라벨(막대 위 숫자) 표시 여부
+  // - 화면 크기와 무관하게 "데이터 밀도"로 판단해서 겹침을 줄임
+  const nonZeroCount = data.filter((d) => (d?.y ?? 0) > 0).length;
+  const showValueLabels = tab === "day" ? nonZeroCount <= 10 : tab === "month" ? nonZeroCount <= 8 : nonZeroCount <= 12;
+
   return (
-    <div style={{ width: "100%", height: 400 }}>
+    <div style={{ width: "100%", height: 360 }}>
+      {/* ✅ 축 제목은 축 옆이 아니라 "상단 작은 글씨"로 표시해서 가로 공간을 확보 */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 8,
+          marginBottom: 4,
+          color: "#6b7280",
+          fontSize: 12,
+        }}
+      >
+        <span>{axisInfo.yLabel}</span>
+        <span>{axisInfo.xLabel}</span>
+      </div>
+
       <ResponsiveContainer>
         <BarChart
           data={data}
@@ -80,28 +100,17 @@ export function SeriesChart(props: {
             dataKey="x"
             interval={xInterval}
             padding={preset.xPadding}
-            tickMargin={10}
             tickFormatter={tickFormatter}
-            label={{
-              value: axisInfo.xLabel,
-              position: "insideBottom",
-              offset: -12,
-            }}
-          />
+	    height={22} 
+	    tickMargin={10} 
+	    />
 
           {/* ✅ Y축: 생산량 라벨(왼쪽) + 위쪽 짤림 방지 여유는 margin.top에서 */}
-          <YAxis
-            allowDecimals={false}
-            tickMargin={6}
-            label={{
-              value: "생산량(개)",
-              angle: -90,
-              position: "insideLeft",
-              offset: 0,
-            }}
-          />
+          <YAxis allowDecimals={false} tickMargin={6} width={28} />
 
           <Tooltip
+              wrapperStyle={{ top: 8, right: 8 }}
+              allowEscapeViewBox={{ x: true, y: true }}
             labelFormatter={(label) => tooltipLabel(String(label))}
             formatter={(value) => [value, "생산량"]}
           />
@@ -109,15 +118,13 @@ export function SeriesChart(props: {
           {/* ✅ 막대: 탭별 두께(barSize)로 답답함 해소 */}
           <Bar dataKey="y" isAnimationActive={false} barSize={preset.barSize}>
             {/* ✅ 값 라벨: 0은 숨김, 위쪽 짤림 방지를 위해 offset 조정 */}
-            <LabelList
-              dataKey="y"
-              position="top"
-              offset={6}
-              formatter={hideZeroLabel}
-            />
+            {showValueLabels ? (
+              <LabelList dataKey="y" position="top" offset={6} formatter={hideZeroLabel} />
+            ) : null}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+
     </div>
   );
 }
@@ -138,7 +145,7 @@ function getPreset(tab: Tab, count: number) {
       barCategoryGap: "38%",
       barGap: 2,
       xPadding: { left: 26, right: 26 },
-      margin: { top: 34, right: 24, left: 28, bottom: 34 },
+      margin: { top: 28, right: 10, left: 0, bottom: 24 },
     };
   }
 
@@ -250,11 +257,12 @@ function hideZeroLabel(v: any) {
 }
 
 function getAxisInfo(tab: Tab) {
+  const yLabel = "생산량(개)";
   if (tab === "day") {
-    return { xLabel: "시간(00~23)" };
+    return { xLabel: "시간(00~23)", yLabel };
   }
   if (tab === "month") {
-    return { xLabel: "일(1~말일)" };
+    return { xLabel: "일(1~말일)", yLabel };
   }
-  return { xLabel: "월(1~12)" };
+  return { xLabel: "월(1~12)", yLabel };
 }

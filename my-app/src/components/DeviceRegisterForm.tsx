@@ -57,7 +57,7 @@ export function DeviceRegisterForm(props: { onRegistered: () => Promise<void> | 
 
   return (
     <div>
-      <div className="sb__grid2">
+      <div className="sb__stack">
         <input
           className="sb__input"
           value={deviceId}

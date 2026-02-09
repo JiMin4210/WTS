@@ -143,12 +143,11 @@
 }
 
 /* 입력 2개 한 줄 */
-.sb__grid2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.sb__stack {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
-
 .sb__input {
   width: 100%;
   padding: 9px 10px;

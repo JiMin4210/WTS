@@ -8,8 +8,8 @@ export function TopBar(props: {
   me: string | null;
 }) {
   return (
-    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-      <button onClick={props.onToggleSidebar} title="메뉴">
+    <div style={{ display: "flex", gap: 10, alignItems: "center", paddingBottom: 6 }}>
+      <button onClick={props.onToggleSidebar} title="사이드바 열기/닫기" aria-label="사이드바 토글">
         ☰
       </button>
 
