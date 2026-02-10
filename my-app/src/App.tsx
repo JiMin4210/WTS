@@ -28,7 +28,7 @@ function getInitialSidebarOpen() {
     const saved = localStorage.getItem(SIDEBAR_OPEN_KEY);
     if (saved === "1") return true;
     if (saved === "0") return false;
-  } catch {}
+  } catch { }
   if (typeof window !== "undefined" && window.innerWidth < SIDEBAR_NARROW_PX) {
     return DEFAULT_SIDEBAR_OPEN_ON_NARROW;
   }
@@ -88,9 +88,13 @@ export default function App() {
   const bootstrap = useBootstrap();
 
   // 2) UI 상태
+  //React에서 일반 변수(let, const)는 값이 변해도 화면을 다시 그리지 않습니다. 하지만 useState는 값이 바뀌면 "어? 데이터 바뀌었네? 화면 다시 그려야지!" 하고 React에게 알려주는 특수 변수입니다.
+  // 1. 기본형: (값) -> React가 초기값을 보고 타입을 자동으로 알아챕니다
   const [sidebarOpen, setSidebarOpen] = useState(getInitialSidebarOpen());
+  // 2. 제네릭형: <Tab> -> "이 변수는 오직 Tab 타입(예: 'day' | 'week')만 들어올 수 있어"라고 명시하는 겁니다. (TypeScript)
   const [tab, setTab] = useState<Tab>("day");
 
+  // 3. 날짜 관련: 문자열로 초기화
   const [dayDate, setDayDate] = useState(formatDate(new Date()));
   const [monthYearMonth, setMonthYearMonth] = useState(formatYearMonth(new Date()));
   const [year, setYear] = useState(String(new Date().getFullYear()));
@@ -125,7 +129,7 @@ export default function App() {
     year,
   });
 
-    // ✅ "선택된 디바이스"의 모든 관련 데이터 새로고침
+  // ✅ "선택된 디바이스"의 모든 관련 데이터 새로고침
   // - device_last(상태) + 현재 탭 시계열(생산량)
   // - 추후 원격제어 상태/설정값 등도 여기에 추가하면 한 번에 갱신 가능
   async function refreshDeviceAll() {
@@ -166,12 +170,15 @@ export default function App() {
 
   return (
     <Routes>
+      {/* 1. 경로 설정: 주소가 /admin이면 관리자 페이지를 보여줌 */}
       <Route path="/admin" element={<AdminPage />} />
 
+      {/* 2. 메인 경로: 주소가 / 일 때 전체 레이아웃 시작 */}
       <Route
         path="/"
         element={
           <div style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}>
+            {/* [왼쪽 사이드바] 장치 목록을 보여주고 선택하는 컴포넌트 */}
             <Sidebar
               open={sidebarOpen}
               devices={bootstrap.devices}
@@ -182,22 +189,27 @@ export default function App() {
               onRegistered={() => bootstrap.refreshDevices()}
             />
 
+            {/* [오른쪽 메인 콘텐츠 영역] */}
             <div style={{ flex: 1, padding: 16 }}>
+
+              {/* [상단 바] 로그인 정보 및 사이드바 토글 버튼 */}
               <TopBar
                 onToggleSidebar={() => setSidebarOpen((v) => {
-            const next = !v;
-            try { localStorage.setItem(SIDEBAR_OPEN_KEY, next ? "1" : "0"); } catch {}
-            return next;
-          })}
+                  const next = !v;
+                  // 로컬 스토리지에 사이드바 상태 저장 (새로고침해도 유지되게)
+                  try { localStorage.setItem(SIDEBAR_OPEN_KEY, next ? "1" : "0"); } catch { }
+                  return next;
+                })}
                 isLoggedIn={bootstrap.isLoggedIn}
-                onLogin={() => signInWithRedirect()}
-                onLogout={() => signOut({ global: true })}
-                me={bootstrap.me}
+                onLogin={() => signInWithRedirect()} // 로그인 실행 함수
+                onLogout={() => signOut({ global: true })} // 로그아웃 실행 함수
+                me={bootstrap.me} // 내 정보 전달
               />
 
+              {/* [탭 메뉴] 일/월/연 선택창. 클릭 시 부모의 tab 상태가 변함 */}
               <Tabs tab={tab} onChange={setTab} />
 
-              {/* 탭별 컨트롤 */}
+              {/* [중앙 컨트롤 박스] 날짜 이동 및 장치 상태 확인 영역 */}
               <div
                 style={{
                   marginTop: 12,
@@ -206,11 +218,13 @@ export default function App() {
                   borderRadius: 8,
                 }}
               >
+
+                {/* 조건부 렌더링: 장치를 선택하지 않았을 때의 안내 문구 */}
                 {!bootstrap.selectedDeviceId ? (
                   <div>좌측에서 디바이스를 선택해주세요.</div>
                 ) : (
                   <>
-                    {/* 날짜 이동 */}
+                    {/* [날짜 이동 컨트롤] 현재 선택된 탭(tab)에 따라 다른 버튼을 보여줌 (조건부 렌더링) */}
                     {tab === "day" && (
                       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                         <button onClick={() => moveDay(-1)}>◀</button>
@@ -245,6 +259,7 @@ export default function App() {
                         flexWrap: "wrap",
                       }}
                     >
+                      {/* 수동 새로고침 버튼: 클릭 시 refreshDeviceAll 실행 */}
                       <button
                         onClick={refreshDeviceAll}
                         style={{
@@ -254,6 +269,7 @@ export default function App() {
                           background: "white",
                           cursor: "pointer",
                         }}
+                        // 버튼 비활성화 조건: 장치 미선택이거나 현재 로딩 중일 때 (중복 클릭 방지)
                         disabled={!bootstrap.selectedDeviceId || devLast.loading || series.loading} // 디바이스를 아직 안 골랐거나 / 이미 조회 중일 때 버튼을 눌러도 의미가 없거나(대상 없음), 중복 요청이 연속으로 나가서 비용·혼선이 생길 수 있어서 막아둔 것
                         title="선택된 디바이스의 상태 정보를 다시 불러옵니다." // 버튼에 마우스를 올리면 뜨는 **툴팁(설명말)**이라서, 사용자가 “이 버튼이 뭘 하는지” 바로 이해하고, 접근성(키보드/보조기기)에도 도움됨
                       >
@@ -274,6 +290,7 @@ export default function App() {
                             padding: "4px 10px",
                             borderRadius: 999,
                             border: "1px solid #ddd",
+                            // st.tone(온라인/경고/오프라인)에 따라 배경색 동적 변경
                             background:
                               st.tone === "online"
                                 ? "#eafff1"
@@ -284,7 +301,7 @@ export default function App() {
                                     : "#f4f4f4",
                           }}
                         >
-                          {st.text}
+                          {st.text} {/* "온라인", "오프라인" 등의 텍스트 출력 */}
                         </span>
                       )}
 
@@ -301,9 +318,11 @@ export default function App() {
                   </>
                 )}
               </div>
-
+              
+              {/* [데이터 로딩 알림] 시계열 데이터(차트 데이터) 로딩 중일 때 표시 */}
               {series.loading && <div style={{ marginTop: 12 }}>로딩 중...</div>}
 
+              {/* [에러 메시지 박스] 장치 정보나 차트 데이터 로딩 중 에러 발생 시 검은 박스 출력 */}
               {(bootstrap.error || series.error) && (
                 <pre
                   style={{
@@ -319,10 +338,11 @@ export default function App() {
                 </pre>
               )}
 
+              {/* [메인 차트 영역] useSeries에서 가져온 데이터를 시각화함 */}
               <div style={{ marginTop: 16 }}>
                 <h3 style={{ marginBottom: 8 }}>데이터(임시 리스트)</h3>
                 <SeriesChart
-                  points={series.points}
+                  points={series.points} // 실제 그래프 데이터 전달
                   tab={tab}
                   dayDate={dayDate}
                   monthYearMonth={monthYearMonth}
@@ -330,6 +350,7 @@ export default function App() {
                 />
               </div>
 
+              {/* [디버깅 영역] 하단에 현재 선택된 장치 ID와 탭 정보를 작게 표시 */}
               <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>
                 selectedDeviceId: {bootstrap.selectedDeviceId ?? "(none)"} / tab: {tab}
               </div>
@@ -338,6 +359,7 @@ export default function App() {
         }
       />
 
+       {/* 주소창에 잘못된 경로 입력 시 자동으로 메인(/)으로 이동 */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
