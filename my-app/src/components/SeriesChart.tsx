@@ -48,7 +48,7 @@ export function SeriesChart(props: {
   };
 
   // 5) ✅ 탭별 “답답함 해소 프리셋”
-  const preset = getPreset(tab, data.length);
+  const preset = getPreset(tab);
 
   // 6) ✅ X축 라벨 스킵(너무 촘촘하면 자동 생략)
   const xInterval = calcTickInterval(tab, data.length);
@@ -173,7 +173,7 @@ export function SeriesChart(props: {
  * - 카테고리 간격 충분히(barCategoryGap)
  * - 라벨/값이 위아래로 안 잘리게(margin)
  */
-function getPreset(tab: Tab, count: number) {
+function getPreset(tab: Tab) {
   if (tab === "year") {
     return {
       // 연: 12개라 여유가 많음 → 막대 조금 두껍게, 간격 넉넉하게
