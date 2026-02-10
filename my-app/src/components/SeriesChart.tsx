@@ -66,6 +66,8 @@ export function SeriesChart(props: {
 
   // ✅ 값 라벨(막대 위 숫자) 표시 여부
   // - 화면 크기와 무관하게 "데이터 밀도"로 판단해서 겹침을 줄임
+  // 의미: 전체 데이터 중에서 값이 0보다 큰 데이터의 개수만 셉니다
+  // 이유: 값이 0인 곳은 막대가 그려지지 않으므로 숫자 라벨도 생기지 않습니다. 즉, 실제로 화면에 그려질 "의미 있는 데이터의 밀도"를 측정하는 것입니다.
   const nonZeroCount = data.filter((d) => (d?.y ?? 0) > 0).length;
   const showValueLabels = tab === "day" ? nonZeroCount <= 10 : tab === "month" ? nonZeroCount <= 8 : nonZeroCount <= 12;
 
@@ -77,7 +79,7 @@ export function SeriesChart(props: {
           display: "flex",
           justifyContent: "space-between",
           gap: 8,
-          marginBottom: 4,
+          marginBottom: 0,
           color: "#6b7280",
           fontSize: 12,
         }}
@@ -101,16 +103,44 @@ export function SeriesChart(props: {
             interval={xInterval}
             padding={preset.xPadding}
             tickFormatter={tickFormatter}
-	    height={22} 
-	    tickMargin={10} 
-	    />
+            height={22}
+            tickMargin={10}
+            tick={{ fontSize: 13 }}
+          />
 
           {/* ✅ Y축: 생산량 라벨(왼쪽) + 위쪽 짤림 방지 여유는 margin.top에서 */}
-          <YAxis allowDecimals={false} tickMargin={6} width={28} />
+          <YAxis
+            allowDecimals={false}
+            tickMargin={6}
+            width={28}
+            tick={{ fontSize: 13 }}
+          />
 
+          {/* ✅ 툴팁 수정부: 가로 늘어남 방지 및 데스크탑 최적화 */}
           <Tooltip
-              wrapperStyle={{ top: 8, right: 8 }}
-              allowEscapeViewBox={{ x: true, y: true }}
+            // 1. 핵심 해결책: 차트 영역(ViewBox) 밖으로 나가는 것을 금지하여 가로 스크롤 방지
+            allowEscapeViewBox={{ x: false, y: false }}
+
+            // 2. 상자 스타일: 콤팩트한 비율 유지
+            contentStyle={{
+              width: "115px",
+              padding: "6px 10px",
+              fontSize: "12px",
+              borderRadius: "6px",
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              border: "1px solid #d1d1d1",
+              boxShadow: "2px 2px 5px rgba(0,0,0,0.05)",
+            }}
+
+            // 3. 텍스트 및 제목 스타일
+            itemStyle={{ fontSize: "12px", padding: "0px", margin: "0px", color: "#333" }}
+            labelStyle={{ fontSize: "12px", fontWeight: "bold", marginBottom: "3px", color: "#000" }}
+
+            // 4. 위치 디테일
+            offset={12}
+            cursor={{ fill: "rgba(0, 0, 0, 0.04)" }} // 마우스 오버 시 막대 배경
+
+            wrapperStyle={{ zIndex: 1000, outline: 'none' }}
             labelFormatter={(label) => tooltipLabel(String(label))}
             formatter={(value) => [value, "생산량"]}
           />
@@ -119,7 +149,13 @@ export function SeriesChart(props: {
           <Bar dataKey="y" isAnimationActive={false} barSize={preset.barSize}>
             {/* ✅ 값 라벨: 0은 숨김, 위쪽 짤림 방지를 위해 offset 조정 */}
             {showValueLabels ? (
-              <LabelList dataKey="y" position="top" offset={6} formatter={hideZeroLabel} />
+              <LabelList
+                dataKey="y"
+                position="top"
+                offset={6}
+                formatter={hideZeroLabel}
+                style={{ fontSize: 10, fill: "#666", fontWeight: 500 }}
+              />
             ) : null}
           </Bar>
         </BarChart>
@@ -141,33 +177,32 @@ function getPreset(tab: Tab, count: number) {
   if (tab === "year") {
     return {
       // 연: 12개라 여유가 많음 → 막대 조금 두껍게, 간격 넉넉하게
-      barSize: 26,
+      barSize: 5,
       barCategoryGap: "38%",
       barGap: 2,
-      xPadding: { left: 26, right: 26 },
-      margin: { top: 28, right: 10, left: 0, bottom: 24 },
+      xPadding: { left: 12, right: 12 }, // 일, 월, 연 통일
+      margin: { top: 28, right: 10, left: 10, bottom: 24 }, // 일, 월, 연 통일
     };
   }
 
   if (tab === "month") {
     // 월: 28~31개 → 막대 얇게 + 간격 많이 + 좌우 패딩 더 주기
-    const barSize = count >= 30 ? 9 : 11;
     return {
-      barSize,
+      barSize: 5,
       barCategoryGap: "50%",
       barGap: 2,
-      xPadding: { left: 24, right: 24 },
-      margin: { top: 36, right: 24, left: 30, bottom: 34 },
+      xPadding: { left: 12, right: 12 }, // 일, 월, 연 통일
+      margin: { top: 28, right: 10, left: 10, bottom: 24 }, // 일, 월, 연 통일
     };
   }
 
   // day: 24개 → 월보단 덜 촘촘하지만 답답할 수 있음
   return {
-    barSize: 12,
+    barSize: 5,
     barCategoryGap: "42%",
     barGap: 2,
-    xPadding: { left: 22, right: 22 },
-    margin: { top: 36, right: 24, left: 30, bottom: 34 },
+    xPadding: { left: 12, right: 12 }, // 일, 월, 연 통일
+    margin: { top: 28, right: 10, left: 10, bottom: 24 }, // 일, 월, 연 통일
   };
 }
 
