@@ -235,6 +235,7 @@ function calcTickInterval(tab: Tab, count: number) {
 
 function normalizeKey(x: string) {
   const s = String(x);
+  // .replace(/\D/g, ""): 숫자가 아닌 것들을 찾아서 전부 빈 문자열("")로 바꿔라, 즉 "숫자만 남기고 다 지워라"라는 뜻
   const digits = s.replace(/\D/g, "");
   if (digits.length >= 2) return digits.slice(-2);
   if (digits.length === 1) return `0${digits}`;
