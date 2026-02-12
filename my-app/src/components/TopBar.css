@@ -1,0 +1,41 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar__titleMain {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.topbar__titleSub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .topbar__titleSub { display: none; }
+  .topbar__titleMain { font-size: 16px; }
+}

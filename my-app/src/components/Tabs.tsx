@@ -1,33 +1,29 @@
+import "./Tabs.css";
 import type { Tab } from "../types";
 
-export function Tabs(props: { tab: Tab; onChange: (t: Tab) => void }) {
-  const btnStyle = (active: boolean) => ({
-    padding: "8px 12px",
-    borderRadius: 8,
-    border: active ? "2px solid #333" : "1px solid #ccc",
-    background: active ? "#f2f2f2" : "white",
-  });
+const TABS: Array<{ key: Tab; label: string }> = [
+  { key: "day", label: "일" },
+  { key: "month", label: "월" },
+  { key: "year", label: "연" },
+];
 
+export function Tabs(props: { tab: Tab; onChange: (tab: Tab) => void }) {
   return (
-    <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-      <button
-        onClick={() => props.onChange("day")}
-        style={btnStyle(props.tab === "day")}
-      >
-        일
-      </button>
-      <button
-        onClick={() => props.onChange("month")}
-        style={btnStyle(props.tab === "month")}
-      >
-        월
-      </button>
-      <button
-        onClick={() => props.onChange("year")}
-        style={btnStyle(props.tab === "year")}
-      >
-        연
-      </button>
+    <div className="segWrap" role="tablist" aria-label="기간 선택">
+      {TABS.map((t) => {
+        const active = props.tab === t.key;
+        return (
+          <button
+            key={t.key}
+            className={`segBtn ${active ? "isActive" : ""}`}
+            onClick={() => props.onChange(t.key)}
+            role="tab"
+            aria-selected={active}
+          >
+            {t.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

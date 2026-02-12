@@ -1,0 +1,93 @@
+:root {
+  --bg: #f6f7fb;
+  --panel: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e5e7eb;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+
+  --primary: #2563eb;
+  --primary-weak: rgba(37, 99, 235, 0.12);
+
+  --danger: #ef4444;
+  --danger-weak: rgba(239, 68, 68, 0.12);
+
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  color: var(--text);
+  background: var(--bg);
+}
+
+button, input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a { color: inherit; }
+
+/* 스크롤바가 필요할 때만 생기게 */
+#root { height: 100%; }
+
+/* 공통 카드 */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* 공통 아이콘 버튼 */
+.iconBtn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+.iconBtn:active { transform: translateY(1px); }
+
+/* 공통 기본 버튼 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+.btnPrimary {
+  background: linear-gradient(135deg, #111827, #334155);
+  color: #fff;
+  border-color: transparent;
+}
+.btnPrimary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* 공통 입력 */
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  outline: none;
+}
+.input:focus { border-color: rgba(37, 99, 235, 0.55); box-shadow: 0 0 0 3px var(--primary-weak); }
+
+/* 작은 보조텍스트 */
+.muted { color: var(--muted); }
+

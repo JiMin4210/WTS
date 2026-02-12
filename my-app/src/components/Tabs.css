@@ -1,0 +1,31 @@
+.segWrap {
+  margin-top: 12px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px;
+  box-shadow: var(--shadow);
+}
+
+.segBtn {
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.segBtn:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.segBtn.isActive {
+  background: var(--primary);
+  color: #fff;
+}

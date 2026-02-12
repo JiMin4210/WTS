@@ -13,6 +13,8 @@ import { SeriesChart } from "./components/SeriesChart";
 
 import type { Tab } from "./types";
 
+import "./App.css";
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AdminPage } from "./pages/AdminPage";
 
@@ -177,7 +179,7 @@ export default function App() {
       <Route
         path="/"
         element={
-          <div style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}>
+          <div className="appShell">
             {/* [왼쪽 사이드바] 장치 목록을 보여주고 선택하는 컴포넌트 */}
             <Sidebar
               open={sidebarOpen}
@@ -190,7 +192,7 @@ export default function App() {
             />
 
             {/* [오른쪽 메인 콘텐츠 영역] */}
-            <div style={{ flex: 1, padding: 16 }}>
+            <main className="appMain">
 
               {/* [상단 바] 로그인 정보 및 사이드바 토글 버튼 */}
               <TopBar
@@ -203,7 +205,6 @@ export default function App() {
                 isLoggedIn={bootstrap.isLoggedIn}
                 onLogin={() => signInWithRedirect()} // 로그인 실행 함수
                 onLogout={() => signOut({ global: true })} // 로그아웃 실행 함수
-                me={bootstrap.me} // 내 정보 전달
               />
 
               {/* [탭 메뉴] 일/월/연 선택창. 클릭 시 부모의 tab 상태가 변함 */}
@@ -354,7 +355,7 @@ export default function App() {
               <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>
                 selectedDeviceId: {bootstrap.selectedDeviceId ?? "(none)"} / tab: {tab}
               </div>
-            </div>
+            </main>
           </div>
         }
       />

@@ -1,0 +1,152 @@
+/* 전체 오버레이(배경) */
+.modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 9999;
+
+  /* 자연스러운 등장 */
+  animation: fadeIn 140ms ease-out;
+}
+
+/* 모달 패널 */
+.modal__panel {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+
+  /* 버튼이 아래로 밀려 안 보이는 문제 방지 */
+  max-height: min(80vh, 720px);
+  display: flex;
+  flex-direction: column;
+
+  /* 자연스러운 등장 */
+  animation: popIn 160ms ease-out;
+  transform-origin: 50% 60%;
+}
+
+/* 헤더 */
+.modal__header {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+}
+
+.modal__title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.modal__close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #e5e5e5;
+  background: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* 바디(스크롤 영역) */
+.modal__body {
+  padding: 16px;
+  overflow: auto;
+}
+
+/* 폼 */
+.form__label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.form__labelTitle {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.form__input {
+  width: 100%;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  padding: 0 12px;
+  outline: none;
+}
+
+.form__input:focus {
+  border-color: #9bb7ff;
+  box-shadow: 0 0 0 3px rgba(120, 150, 255, 0.18);
+}
+
+/* 푸터(등록 버튼 고정) */
+.modal__footer {
+  padding: 12px 16px;
+  border-top: 1px solid #eee;
+  background: #fff;
+
+  /* ✅ 스크롤이 생겨도 등록 버튼은 항상 보이게 */
+  position: sticky;
+  bottom: 0;
+}
+
+/* ✅ 등록 버튼: 글자가 안 보이는 문제 방지의 핵심 */
+.btnPrimary {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 0;
+  cursor: pointer;
+
+  /* 배경/글자 대비 확실히 */
+  background: #111827; /* 거의 검정 */
+  color: #ffffff;      /* 흰색 */
+
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* 모바일에서는 바텀시트 느낌(더 자연스러움) */
+@media (max-width: 560px) {
+  .modal__backdrop {
+    align-items: flex-end;
+  }
+  .modal__panel {
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 85vh;
+    animation: sheetUp 180ms ease-out;
+  }
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { transform: translateY(10px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
