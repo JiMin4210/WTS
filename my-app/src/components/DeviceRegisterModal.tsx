@@ -11,7 +11,7 @@ export function DeviceRegisterModal(props: {
   const [deviceId, setDeviceId] = useState("");
   const [nickname, setNickname] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const canSubmit = useMemo(() => {
     return deviceId.trim() && nickname.trim() && !submitting;
@@ -22,7 +22,7 @@ export function DeviceRegisterModal(props: {
 
     try {
       setSubmitting(true);
-      setMsg(null);
+      setError(null);
 
       const res = await callAppSync<{ registerDevice: { deviceId: string; nickname: string } }>(
         Q_REGISTER_DEVICE,
@@ -37,13 +37,12 @@ export function DeviceRegisterModal(props: {
 
       await props.onRegistered(res.registerDevice.deviceId);
     } catch (e: any) {
-      const m = String(e?.message ?? e);
-
-      // ✅ 한글 + 존댓말 안내
-      if (m.includes("ConditionalCheckFailed") || m.includes("DeviceAlreadyExists")) {
-        setMsg("이미 등록된 디바이스 ID입니다. 다른 디바이스 ID를 입력해 주세요.");
+      const msg = String(e?.message ?? e);
+      // ✅ 중복은 사용자에게 명확하게
+      if (msg.includes("ConditionalCheckFailed") || msg.includes("already") || msg.includes("duplicate")) {
+        setError("이미 등록된 디바이스 ID입니다. 다른 디바이스 ID를 입력해 주세요.");
       } else {
-        setMsg("등록에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        setError("등록에 실패했습니다. 잠시 후 다시 시도해 주세요.");
       }
     } finally {
       setSubmitting(false);
@@ -92,7 +91,7 @@ export function DeviceRegisterModal(props: {
             />
           </label>
 
-          {msg && <div className="form__msg">{msg}</div>}
+          {error && <div className="form__error">{error}</div>}
         </div>
 
         <div className="modal__footer">
