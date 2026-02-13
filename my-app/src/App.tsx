@@ -189,6 +189,10 @@ export default function App() {
               // ✅ 추가: 삭제 / 등록 후 갱신
               onRemoveDevice={(id) => bootstrap.removeDevice(id)}
               onRegistered={() => bootstrap.refreshDevices()}
+              onClose={() => {
+                setSidebarOpen(false);
+                try { localStorage.setItem(SIDEBAR_OPEN_KEY, "0"); } catch { }
+              }}
             />
 
             {/* [오른쪽 메인 콘텐츠 영역] */}
@@ -270,20 +274,13 @@ export default function App() {
                           disabled={!bootstrap.selectedDeviceId || devLast.loading || series.loading}
                           title="선택된 디바이스의 상태/데이터를 다시 불러옵니다."
                         >
-                          {(devLast.loading || series.loading) ? (
-                            <>
-                              <span className="refreshSpinner" aria-hidden />
-                              <span className="refreshText">새로고침 중</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="refreshIcon" aria-hidden>↻</span>
-                              <span className="refreshText">새로고침</span>
-                            </>
-                          )}
+                          <span className="refreshIcon" aria-hidden>↻</span>
+                          <span className="refreshText">새로고침</span>
                         </button>
 
-                        {devLast.error ? (
+                        {devLast.loading ? (
+                          <span className="muted statusHint">상태 확인 중…</span>
+                        ) : devLast.error ? (
                           <span className="statusError">⚠️ 상태 정보를 불러오지 못했습니다.</span>
                         ) : null}
                       </div>

@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./Sidebar.css";
 import type { DeviceSummary } from "../types";
 import { DeviceRegisterModal } from "./DeviceRegisterModal";
+
+const NARROW_PX = 900;
 
 export function Sidebar(props: {
   open: boolean;
@@ -11,118 +13,126 @@ export function Sidebar(props: {
   onSelectDevice: (deviceId: string) => void;
   onRemoveDevice: (deviceId: string) => void;
 
-  // ✅ 등록 성공 후, 목록 갱신 + (가능하면) 새 디바이스 자동 선택까지 하려고 씀
   onRegistered: (newDeviceId?: string) => Promise<void> | void;
+
+  // ✅ 드로어(모바일) 닫기
+  onClose?: () => void;
 }) {
   const [regOpen, setRegOpen] = useState(false);
 
-  if (!props.open) return null;
+  const isNarrow = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth <= NARROW_PX;
+  }, []);
+
+  // ESC로 닫기(모바일/드로어용)
+  useEffect(() => {
+    if (!props.open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") props.onClose?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [props.open, props.onClose]);
+
+  const closeIfNarrow = () => {
+    if (typeof window !== "undefined" && window.innerWidth <= NARROW_PX) {
+      props.onClose?.();
+    }
+  };
 
   return (
-    <aside className="sb">
-      <div className="sb__header">
-        <div className="sb__title">디바이스</div>
-      </div>
+    <>
+      {/* 모바일 드로어 오버레이 */}
+      <div
+        className={`sbOverlay ${props.open ? "sbOverlay--open" : ""}`}
+        onClick={() => props.onClose?.()}
+        aria-hidden={!props.open}
+      />
 
-      <div className="sb__listWrap">
-        <ul className="sb__ul">
-          {/* ✅ 등록 카드: 최상단 */}
-          <li>
-            <button
-              type="button"
-              className="sb__card sb__card--create"
-              onClick={() => setRegOpen(true)}
-            >
-              <div className="sb__createRow">
-                <span className="sb__plus" aria-hidden="true">
-                  +
-                </span>
-                <div className="sb__createText">
-                  <div className="sb__nick">디바이스 등록</div>
-                  <div className="sb__id">새 기기를 추가합니다</div>
-                </div>
-              </div>
-            </button>
-          </li>
+      <aside className={`sb ${props.open ? "sb--open" : "sb--closed"}`} aria-hidden={!props.open}>
+        <div className="sb__header">
+          <div className="sb__title">디바이스</div>
+        </div>
 
-          {/* ✅ 디바이스 리스트 */}
-          {props.devices.map((d) => {
-            const active = d.deviceId === props.selectedDeviceId;
-
-            return (
-              <li key={d.deviceId}>
-                <button
-                  type="button"
-                  className={`sb__card ${active ? "sb__card--active" : ""}`}
-                  onClick={() => props.onSelectDevice(d.deviceId)}
-                >
-                  <div className="sb__nick">{d.nickname}</div>
-                  {import.meta.env.DEV && <div className="sb__id">{d.deviceId}</div>}
-
-                  {/* ✅ 삭제 버튼 */}
-                  <div className="sb__action">
-                    <button
-                      className="sb__trashBtn"
-                      type="button"
-                      aria-label="삭제"
-                      title="삭제"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const ok = window.confirm("이 디바이스를 삭제하시겠습니까?");
-                        if (!ok) return;
-                        props.onRemoveDevice(d.deviceId);
-                      }}
-                    >
-                      <TrashIcon />
-                    </button>
+        <div className="sb__listWrap">
+          <ul className="sb__ul">
+            {/* 등록 카드 */}
+            <li>
+              <button
+                type="button"
+                className="sb__card sb__card--create"
+                onClick={() => setRegOpen(true)}
+              >
+                <div className="sb__createRow">
+                  <span className="sb__plus" aria-hidden="true">
+                    +
+                  </span>
+                  <div className="sb__createText">
+                    <div className="sb__nick">디바이스 등록</div>
+                    <div className="sb__id">새 기기를 추가합니다</div>
                   </div>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                </div>
+              </button>
+            </li>
 
-        {props.devices.length === 0 && (
-          <div className="sb__empty">
-            등록된 디바이스가 없습니다. 상단의 “디바이스 등록”을 눌러 추가해 주세요.
-          </div>
-        )}
-      </div>
+            {/* 디바이스 리스트 */}
+            {props.devices.map((d) => {
+              const active = d.deviceId === props.selectedDeviceId;
 
-      {/* ✅ 등록 모달 */}
-      <DeviceRegisterModal
-        open={regOpen}
-        onClose={() => setRegOpen(false)}
-        onRegistered={async (newId) => {
-          await props.onRegistered(newId);
-          setRegOpen(false);
-        }}
-      />
-    </aside>
-  );
-}
+              return (
+                <li key={d.deviceId}>
+                  <button
+                    type="button"
+                    className={`sb__card ${active ? "sb__card--active" : ""}`}
+                    onClick={() => {
+                      props.onSelectDevice(d.deviceId);
+                      closeIfNarrow();
+                    }}
+                  >
+                    <div className="sb__row">
+                      <div className="sb__cardMain">
+                        <div className="sb__nick">{d.nickname}</div>
+                        {/* 개발자용: DEV_로 시작할 때만 id 표시 */}
+                        {d.deviceId?.startsWith("DEV_") ? (
+                          <div className="sb__id">{d.deviceId}</div>
+                        ) : null}
+                      </div>
 
-function TrashIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M9 3h6l1 2h4v2H4V5h4l1-2Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M7 9v11h10V9"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10 12v6M14 12v6"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
+                      <button
+                        type="button"
+                        className="sb__trash"
+                        title="디바이스 삭제"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          props.onRemoveDevice(d.deviceId);
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+
+            {props.devices.length === 0 ? (
+              <li className="sb__empty">등록된 디바이스가 없습니다.</li>
+            ) : null}
+          </ul>
+        </div>
+
+        {/* 등록 모달 */}
+        <DeviceRegisterModal
+          open={regOpen}
+          onClose={() => setRegOpen(false)}
+          onRegistered={async (newDeviceId) => {
+            await props.onRegistered(newDeviceId);
+            setRegOpen(false);
+            closeIfNarrow();
+          }}
+        />
+      </aside>
+    </>
   );
 }
