@@ -116,3 +116,24 @@
     font-size: 16px;
   }
 }
+
+
+.statusRow {
+  justify-content: space-between;
+}
+
+.statusLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.refreshBtn .refreshIcon { font-weight: 900; }
+@media (max-width: 640px) {
+  /* 모바일에서는 새로고침을 오른쪽 끝에 두고, 텍스트는 숨겨서 공간 절약 */
+  .statusRow { gap: 10px; }
+  .statusLeft { width: 100%; justify-content: space-between; }
+  .refreshBtn { width: 40px; height: 40px; padding: 0; border-radius: 999px; }
+  .refreshBtn .refreshText { display: none; }
+}

@@ -249,34 +249,34 @@ export default function App() {
                         <button className="iconBtn" onClick={() => moveYear(+1)} aria-label="다음 연도">▶</button>
                       </div>
                     )}
-{/* ✅ 선택된 1대 상태 표시 + 새로고침 */}
+
                     <div className="controlDivider" />
 
                     {/* 상태 영역 */}
-		    {/* 수동 새로고침 버튼: 클릭 시 refreshDeviceAll 실행 */}
                     <div className="statusRow">
+                      <div className="statusLeft">
+                      <span className={`chip chip--${st.tone}`}>{st.label}</span>
                       <button
                         onClick={refreshDeviceAll}
-                        className="btn btnSm btnGhost"
+                        className="btn btnSm btnGhost refreshBtn"
                         disabled={!bootstrap.selectedDeviceId || devLast.loading || series.loading}
                         title="선택된 디바이스의 상태/데이터를 다시 불러옵니다."
                       >
-                        ↻ 새로고침
+                        <span className="refreshIcon" aria-hidden>↻</span>
+                        <span className="refreshText">새로고침</span>
                       </button>
-
                       {devLast.loading ? (
                         <span className="muted statusHint">상태 확인 중…</span>
                       ) : devLast.error ? (
                         <span className="statusError">⚠️ 상태 정보를 불러오지 못했습니다.</span>
-                      ) : (
-                        <span className={`chip chip--${st.tone}`}>{st.label}</span>
-                      )}
+                      ) : null}
+                      </div>
 
                       <div className="metaLine">
-                        <span className="metaItem">
-                          <span className="metaLabel">마지막 수신</span>
-                          <span className="metaValue">{lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}</span>
-                        </span>
+                      <span className="metaItem">
+                        <span className="metaLabel">마지막 수신</span>
+                        <span className="metaValue">{lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}</span>
+                      </span>
                       </div>
                     </div>
                   </>

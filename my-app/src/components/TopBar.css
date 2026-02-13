@@ -39,3 +39,14 @@
   .topbar__titleSub { display: none; }
   .topbar__titleMain { font-size: 16px; }
 }
+
+
+.topbar__action {
+  border-radius: 999px;
+  padding: 10px 12px;
+}
+
+@media (max-width: 420px) {
+  .topbar__actionText { display: none; }
+  .topbar__action { width: 40px; height: 40px; padding: 0; justify-content: center; }
+}
