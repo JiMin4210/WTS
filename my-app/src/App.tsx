@@ -196,7 +196,15 @@ export default function App() {
             />
 
             {/* [오른쪽 메인 콘텐츠 영역] */}
-            <main className="appMain">
+            <main className="appMain"
+              onClick={(e) => {
+                if (!sidebarOpen) return;
+                if (e.target === e.currentTarget) {
+                  setSidebarOpen(false);
+                  try { localStorage.setItem(SIDEBAR_OPEN_KEY, "0"); } catch { }
+                }
+              }}
+            >
 
               {/* [상단 바] 로그인 정보 및 사이드바 토글 버튼 */}
               <TopBar
