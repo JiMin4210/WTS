@@ -261,28 +261,39 @@ export default function App() {
                       <div className="statusLeft">
                         <span className={`chip chip--${st.tone}`}>{st.label}</span>
 
-                        <span className="metaInline">
+                        <span className="metaItem">
                           <span className="metaLabel">마지막 수신</span>
                           <span className="metaValue">{lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}</span>
                         </span>
                       </div>
 
                       <div className="statusRight">
-                        <button
-                          onClick={refreshDeviceAll}
-                          className="btn btnSm btnGhost refreshBtn"
-                          disabled={!bootstrap.selectedDeviceId || devLast.loading || series.loading}
-                          title="선택된 디바이스의 상태/데이터를 다시 불러옵니다."
-                        >
-                          <span className="refreshIcon" aria-hidden>↻</span>
-                          <span className="refreshText">새로고침</span>
-                        </button>
+                        {(() => {
+                          const isRefreshing = devLast.loading || series.loading;
+                          return (
+                            <>
+                              <button
+                                onClick={refreshDeviceAll}
+                                className="btn btnSm btnGhost refreshBtn"
+                                disabled={!bootstrap.selectedDeviceId || isRefreshing}
+                                title="선택된 디바이스의 상태/데이터를 다시 불러옵니다."
+                              >
+                                {isRefreshing ? (
+                                  <span className="spinner" aria-hidden />
+                                ) : (
+                                  <span className="refreshIcon" aria-hidden>
+                                    ↻
+                                  </span>
+                                )}
+                                <span className="refreshText">{isRefreshing ? "새로고침 중" : "새로고침"}</span>
+                              </button>
 
-                        {devLast.loading ? (
-                          <span className="muted statusHint">상태 확인 중…</span>
-                        ) : devLast.error ? (
-                          <span className="statusError">⚠️ 상태 정보를 불러오지 못했습니다.</span>
-                        ) : null}
+                              {devLast.error ? (
+                                <span className="statusError">⚠️ 상태 정보를 불러오지 못했습니다.</span>
+                              ) : null}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </>

@@ -164,6 +164,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, transform 80ms ease;
+}
+
+.sb__trash:hover {
+  background: var(--danger-weak);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--danger);
+}
+
+.sb__trash:hover {
+  background: var(--danger-weak);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--danger);
 }
 
 .sb__trash:active { transform: translateY(1px); }

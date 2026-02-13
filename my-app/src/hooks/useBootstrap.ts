@@ -53,6 +53,10 @@ export function useBootstrap() {
    * - 삭제 후 목록 갱신
    */
   async function removeDevice(deviceId: string) {
+    // ✅ UX: 삭제는 반드시 확인(실수 방지)
+    const ok = window.confirm("정말로 이 디바이스를 삭제할까요?\n(삭제 후에는 목록에서 제거됩니다)");
+    if (!ok) return;
+
     await callAppSync<{ removeDevice: boolean }>(Q_REMOVE_DEVICE, { deviceId });
     await refreshDevices();
   }

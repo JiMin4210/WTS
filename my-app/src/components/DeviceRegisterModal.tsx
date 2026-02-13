@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { callAppSync } from "../appsync";
 import { Q_REGISTER_DEVICE } from "../queries";
 import "./DeviceRegisterModal.css";
@@ -51,7 +52,7 @@ export function DeviceRegisterModal(props: {
 
   if (!props.open) return null;
 
-  return (
+  const node = (
     <div className="modal__backdrop" role="presentation" onMouseDown={props.onClose}>
       <div
         className="modal__panel"
@@ -95,14 +96,18 @@ export function DeviceRegisterModal(props: {
         </div>
 
         <div className="modal__footer">
-          <button className="btn btn--ghost" type="button" onClick={props.onClose}>
+          <button className="btn btnGhost" type="button" onClick={props.onClose}>
             취소
           </button>
-          <button className="btn btn--primary" type="button" disabled={!canSubmit} onClick={submit}>
+          <button className="btn btnPrimary" type="button" disabled={!canSubmit} onClick={submit}>
             {submitting ? "등록 중…" : "등록"}
           </button>
         </div>
       </div>
     </div>
   );
+
+  // ✅ Sidebar(드로어)가 transform을 사용하면 fixed 포지션이 깨질 수 있어서 portal로 body에 렌더링
+  if (typeof document === "undefined") return node;
+  return createPortal(node, document.body);
 }

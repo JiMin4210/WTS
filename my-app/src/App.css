@@ -12,33 +12,10 @@
   overflow: auto;
 }
 
-/* 모바일에서 기본: 사이드바 닫힘. (옵션으로 추후 변경 가능) */
+/* 모바일/태블릿: 메인 여백 축소 */
 @media (max-width: 900px) {
-  .appMain {
-    padding: 12px;
-  }
+  .appMain { padding: 12px; }
 }
-
-/* ✅ 상태 확인/최종 수신 시각: 긴 문장이 모바일에서 깨지지 않게 */
-.statusTimes {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.statusTimes > span {
-  white-space: nowrap;
-}
-
-@media (max-width: 640px) {
-  .statusTimes > span {
-    white-space: normal;
-    word-break: break-word;
-  }
-}
-
 
 /* ====== 컨트롤(날짜/상태) 카드 ====== */
 .controlCard {
@@ -57,10 +34,12 @@
   text-align: center;
   line-height: 1.1;
 }
+
 .dateNavLabel {
   font-size: 12px;
   color: var(--muted);
 }
+
 .dateNavValue {
   font-size: 18px;
   font-weight: 800;
@@ -73,167 +52,103 @@
   margin: 12px 0;
 }
 
+/* ====== 상태 줄(좌: 상태/마지막수신, 우: 새로고침) ====== */
 .statusRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: start;
 }
 
-.statusHint { font-size: 12px; }
-.statusError { font-size: 12px; color: #b91c1c; }
-
-.metaLine {
+.statusLeft {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
-  margin-left: auto;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .metaItem {
   display: inline-flex;
   gap: 8px;
-  align-items: baseline;
+  align-items: center;
   font-size: 12px;
+  line-height: 1.2;
   color: var(--muted);
+  min-width: 0;
 }
+
 .metaLabel { white-space: nowrap; }
-.metaValue { font-weight: 600; color: rgba(15,23,42,0.85); }
-
-/* 하단 메타(마지막 새로고침) */
-.lastChecked {
-  margin-top: 14px;
-  font-size: 12px;
+.metaValue {
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.78);
 }
 
-/* 모바일: 오른쪽 정렬(metaLine)을 아래로 자연스럽게 내려줌 */
-@media (max-width: 640px) {
-  .metaLine {
-    width: 100%;
-    margin-left: 0;
-  }
-  .dateNavValue {
-    font-size: 16px;
-  }
+/* 다크모드에서 metaValue 대비 */
+@media (prefers-color-scheme: dark) {
+  .metaValue { color: rgba(229, 231, 235, 0.92); }
 }
 
+.statusHint { font-size: 12px; }
+.statusError { font-size: 12px; color: #b91c1c; }
 
-.statusRow {
-  justify-content: space-between;
-}
-
-.statusLeft {
+.refreshBtn {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
-}
-
-.refreshBtn .refreshIcon { font-weight: 900; }
-@media (max-width: 640px) {
-  /* 모바일에서는 새로고침을 오른쪽 끝에 두고, 텍스트는 숨겨서 공간 절약 */
-  .statusRow { gap: 10px; }
-  .statusLeft { width: 100%; justify-content: space-between; }
-  .refreshBtn { width: 40px; height: 40px; padding: 0; border-radius: 999px; }
-  /* .refreshText는 모바일에서도 표시 */
-}
-
-/* --- Status row layout (consistent across desktop/mobile) --- */
-.statusRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  flex-wrap:wrap;
-}
-
-.statusLeft{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  min-width:0;
-}
-
-.metaInline{
-  display:inline-flex;
-  align-items:baseline;
-  gap:8px;
-  min-width:0;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.metaInline .metaValue{
-  font-weight:600;
-  color: rgba(15,23,42,0.85);
-  word-break: break-word;
-}
-
-.statusRight{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-left:auto;
-}
-
-.refreshBtn{
-  border-radius:999px;
-  padding:10px 12px;
-  white-space:nowrap;
-}
-
-@media (max-width: 520px){
-  /* 상태칩은 1행, 마지막 수신은 자연스럽게 2행으로 내려가게 */
-  .metaInline{ flex-basis:100%; }
-  .refreshBtn{ padding:10px 12px; }
-  .refreshText{ font-size:12px; }
-}
-
-
-/* ===== Commit6: 상태줄 정렬(데스크탑/모바일 동일) + 로딩 스피너 ===== */
-.statusRow{
-  display:grid;
-  grid-template-columns: 1fr auto;
-  gap: 12px;
-  align-items: center;
-}
-.statusLeft{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  min-width:0;
-}
-.statusRight{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:10px;
-  min-width:0;
-}
-
-/* 마지막 수신은 모바일에서만 자연스럽게 2행 허용 */
-@media (max-width: 520px){
-  .metaInline{ flex-basis:100%; }
-}
-
-/* 버튼 높이/패딩 통일: 떠보이는 느낌 방지 */
-.refreshBtn{
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 999px;
+  justify-content: center;
   white-space: nowrap;
 }
 
-/* 로딩 스피너(버튼 내부) */
-.refreshSpinner{
-  width: 14px;
-  height: 14px;
+.refreshIcon { font-weight: 900; }
+
+.spinner {
+  width: 16px;
+  height: 16px;
   border-radius: 999px;
-  border: 2px solid rgba(15,23,42,0.25);
-  border-top-color: rgba(15,23,42,0.75);
-  display:inline-block;
-  animation: spin 0.9s linear infinite;
+  border: 2px solid rgba(148, 163, 184, 0.55);
+  border-top-color: rgba(37, 99, 235, 0.9);
+  animation: spin 700ms linear infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 모바일: 마지막 수신은 아래로 내려도 OK, 버튼은 오른쪽 위 고정 */
+@media (max-width: 520px) {
+  .metaItem { width: 100%; }
+  .refreshBtn { min-height: 44px; padding: 0 14px; }
+  .dateNavValue { font-size: 16px; }
+}
+
+/* ====== 하단 메타(마지막 새로고침) ====== */
+.lastChecked {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ====== (선택) 상태/시각 정보 모음: 긴 문장 줄바꿈 안정 ====== */
+.statusTimes {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+.statusTimes > span { white-space: nowrap; }
+@media (max-width: 640px) {
+  .statusTimes > span { white-space: normal; word-break: break-word; }
+}
+
+/* ====== 모바일 사이드바 드로어 대응 ======
+   - Sidebar는 fixed로 띄우고(overlay), main은 전체 폭 사용 */
+@media (max-width: 900px) {
+  .appShell { display: block; height: auto; min-height: 100vh; }
+  .appMain { padding-top: 12px; }
+}
