@@ -23,6 +23,7 @@ export function TopBar(props: {
   isLoggedIn: boolean;
   onLogin: () => void;
   onLogout: () => void;
+  titleMain?: string;
 }) {
   return (
     <header className="topbar">
@@ -37,7 +38,7 @@ export function TopBar(props: {
         </button>
 
         <div className="topbar__title">
-          <div className="topbar__titleMain">생산량 모니터링</div>
+          <div className="topbar__titleMain">{props.titleMain ?? "생산량 모니터링"}</div>
           <div className="topbar__titleSub">Production Dashboard</div>
         </div>
       </div>

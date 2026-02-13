@@ -3,6 +3,7 @@
   --panel: #ffffff;
   --text: #0f172a;
   --muted: #64748b;
+  --axis: rgba(15, 23, 42, 0.58);
   --border: #e5e7eb;
   --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 
@@ -36,6 +37,7 @@
     --panel: #111a2c;
     --text: #e5e7eb;
     --muted: #94a3b8;
+    --axis: rgba(229, 231, 235, 0.72);
     --border: rgba(148, 163, 184, 0.22);
     --shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
 

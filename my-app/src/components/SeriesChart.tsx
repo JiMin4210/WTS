@@ -110,7 +110,7 @@ export function SeriesChart(props: {
             tickFormatter={tickFormatter}
             height={22}
             tickMargin={10}
-            tick={{ fontSize: 12, fill: "var(--muted)" }}
+            tick={{ fontSize: 12, fill: "var(--axis)", fontWeight: 600 }}
           />
 
           {/* ✅ Y축: 생산량 라벨(왼쪽) + 위쪽 짤림 방지 여유는 margin.top에서 */}

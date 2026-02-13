@@ -131,10 +131,11 @@ export default function App() {
     year,
   });
 
-  // ✅ 차트 제목: 선택된 디바이스 닉네임(없으면 기본 제목)
-  const selectedNickname =
-    bootstrap.devices.find((d) => d.deviceId === bootstrap.selectedDeviceId)?.nickname ??
-    "데이터(임시 리스트)";
+  // ✅ 상단 타이틀: 선택된 디바이스 닉네임으로 대체(선택 없으면 기본)
+  const headerTitleMain =
+    bootstrap.selectedDeviceId
+      ? bootstrap.devices.find((d) => d.deviceId === bootstrap.selectedDeviceId)?.nickname ?? "생산량 모니터링"
+      : "생산량 모니터링";
 
   // ✅ "선택된 디바이스"의 모든 관련 데이터 새로고침
   // - device_last(상태) + 현재 탭 시계열(생산량)
@@ -222,6 +223,7 @@ export default function App() {
                 isLoggedIn={bootstrap.isLoggedIn}
                 onLogin={() => signInWithRedirect()} // 로그인 실행 함수
                 onLogout={() => signOut({ global: true })} // 로그아웃 실행 함수
+                titleMain={headerTitleMain}
               />
 
               {/* [탭 메뉴] 일/월/연 선택창. 클릭 시 부모의 tab 상태가 변함 */}
@@ -331,11 +333,6 @@ export default function App() {
 
               {/* [메인 차트 영역] useSeries에서 가져온 데이터를 시각화함 */}
               <div style={{ marginTop: 16 }}>
-                <div className="chartHeader">
-                  <div className="chartTitle" title={selectedNickname}>
-                    {selectedNickname}
-                  </div>
-                </div>
                 <SeriesChart
                   points={series.points} // 실제 그래프 데이터 전달
                   tab={tab}
@@ -355,7 +352,7 @@ export default function App() {
                 <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>
                   selectedDeviceId: {bootstrap.selectedDeviceId ?? "(none)"} / tab: {tab}
                 </div>
-)}
+              )}
             </main>
           </div>
         }

@@ -152,32 +152,6 @@
   color: var(--muted);
 }
 
-/* ====== 차트 제목(선택된 디바이스 닉네임) 가독성 ====== */
-.chartHeader {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  margin: 10px 0 10px;
-}
-
-.chartTitle {
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  /* 긴 닉네임 대비 */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (max-width: 520px) {
-  .chartTitle {
-    font-size: 16px;
-  }
-}
-
 /* ====== (선택) 상태/시각 정보 모음: 긴 문장 줄바꿈 안정 ====== */
 .statusTimes {
   display: flex;
