@@ -122,7 +122,7 @@ export function Sidebar(props: {
                       <div className="sb__cardMain">
                         <div className="sb__nick">{d.nickname}</div>
                         {/* 개발자용: DEV_로 시작할 때만 id 표시 */}
-                        {d.deviceId?.startsWith("DEV_") ? (
+                        {import.meta.env.DEV ? (
                           <div className="sb__id">{d.deviceId}</div>
                         ) : null}
                       </div>

@@ -342,12 +342,11 @@ export default function App() {
               </div>
 
               {/* [디버깅 영역] 하단에 현재 선택된 장치 ID와 탭 정보를 작게 표시 */}
-              {import.meta.env.DEV ? (
+              {import.meta.env.DEV && (
                 <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>
                   selectedDeviceId: {bootstrap.selectedDeviceId ?? "(none)"} / tab: {tab}
                 </div>
-              ) : null}
-
+)}
             </main>
           </div>
         }
