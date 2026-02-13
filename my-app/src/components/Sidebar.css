@@ -237,3 +237,63 @@
 }
 
 .sb__trash:active { transform: translateY(1px); }
+
+/* ===== Commit 17: Sidebar touch targets + polish ===== */
+
+/* 리스트 카드(디바이스 카드) */
+.sb__card {
+  min-height: var(--tap);
+}
+
+/* 카드 내부 row 정렬 안정화 (세로 가운데, 간격 안정) */
+.sb__row {
+  align-items: center;
+}
+
+/* 등록 카드(디바이스 등록)도 최소 높이 */
+.sb__createCard {
+  min-height: var(--tap);
+}
+
+/* 등록 카드의 아이콘 버튼이 너무 작아지지 않게 */
+.sb__createIcon {
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: 12px;
+}
+
+/* 삭제 버튼: 최소 터치 영역 + hover/active 마감 */
+.sb__trashBtn {
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* hover: 너무 과하지 않게, 하지만 명확하게 */
+.sb__trashBtn:hover {
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* active(누르는 순간): 미세하게 눌림 느낌 */
+.sb__trashBtn:active {
+  transform: translateY(1px);
+  background: rgba(239, 68, 68, 0.14);
+}
+
+/* 카드 자체도 눌림 피드백(모바일 탭) */
+.sb__card:active,
+.sb__createCard:active {
+  transform: translateY(1px);
+}
+
+/* 키보드 포커스 시 카드도 링이 잘 보이도록 */
+.sb__card:focus-visible,
+.sb__createCard:focus-visible,
+.sb__trashBtn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

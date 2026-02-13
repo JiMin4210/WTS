@@ -157,3 +157,47 @@ a { color: inherit; }
 
 .chip--unknown { background: #f1f5f9; }
 .chip--unknown::before{ background: #94a3b8; }
+
+/* ===== Commit 17: touch targets + focus-visible ===== */
+
+/* 모바일/터치 기준: 최소 44px 터치 영역 */
+:root {
+  --tap: 44px;
+  --focus: rgba(37, 99, 235, 0.55); /* primary 계열 포커스 링 */
+}
+
+/* 공통 버튼 최소 높이 보장 (기존 btn 시스템 위에 얹기) */
+.btn,
+.btnSm,
+.btnGhost,
+.btnPrimary {
+  min-height: var(--tap);
+}
+
+/* 아이콘 버튼/작은 버튼류도 최소 터치 영역 확보 */
+.iconBtn,
+.topbar__menuBtn,
+.sb__trashBtn,
+.sb__createIcon,
+.refreshBtn {
+  min-height: var(--tap);
+  min-width: var(--tap);
+}
+
+/* focus-visible: 키보드 탭 이동에서만 링 표시 */
+:where(button, a, input, textarea, select, [role="button"], [tabindex]):focus {
+  outline: none;
+}
+
+:where(button, a, input, textarea, select, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* 입력창 포커스도 제품 느낌으로 통일 */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
