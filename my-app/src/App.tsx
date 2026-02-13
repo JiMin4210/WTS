@@ -131,6 +131,11 @@ export default function App() {
     year,
   });
 
+  // ✅ 차트 제목: 선택된 디바이스 닉네임(없으면 기본 제목)
+  const selectedNickname =
+    bootstrap.devices.find((d) => d.deviceId === bootstrap.selectedDeviceId)?.nickname ??
+    "데이터(임시 리스트)";
+
   // ✅ "선택된 디바이스"의 모든 관련 데이터 새로고침
   // - device_last(상태) + 현재 탭 시계열(생산량)
   // - 추후 원격제어 상태/설정값 등도 여기에 추가하면 한 번에 갱신 가능
@@ -326,7 +331,7 @@ export default function App() {
 
               {/* [메인 차트 영역] useSeries에서 가져온 데이터를 시각화함 */}
               <div style={{ marginTop: 16 }}>
-                <h3 style={{ marginBottom: 8 }}>데이터(임시 리스트)</h3>
+                <h3 style={{ marginBottom: 8 }}>{selectedNickname}</h3>
                 <SeriesChart
                   points={series.points} // 실제 그래프 데이터 전달
                   tab={tab}

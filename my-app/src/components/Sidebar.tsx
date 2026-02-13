@@ -98,7 +98,7 @@ export function Sidebar(props: {
                   </span>
                   <div className="sb__createText">
                     <div className="sb__nick">디바이스 등록</div>
-                    <div className="sb__id">새 기기를 추가합니다</div>
+                    <div className="sb__sub">새 기기를 추가합니다</div>
                   </div>
                 </div>
               </button>
