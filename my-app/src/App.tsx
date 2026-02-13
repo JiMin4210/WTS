@@ -306,15 +306,17 @@ export default function App() {
                         </span>
                       )}
 
-                      {/* ✅ 사용자 기준 "상태 확인 시각" */}
-                      <span style={{ fontSize: 12, color: "#777" }}>
-                        상태 확인 시각: {lastCheckedAt ? formatDateTime(lastCheckedAt) : "-"}
-                      </span>
+                      <div className="statusTimes">
+                        {/* ✅ 사용자 기준 "상태 확인 시각" */}
+                        <span>
+                          상태 확인 시각: {lastCheckedAt ? formatDateTime(lastCheckedAt) : "-"}
+                        </span>
 
-                      {/* ✅ 기기 기준 "최종 수신 시각" */}
-                      <span style={{ fontSize: 12, color: "#777" }}>
-                        기기 최종 수신 시각: {lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}
-                      </span>
+                        {/* ✅ 기기 기준 "최종 수신 시각" */}
+                        <span>
+                          기기 최종 수신 시각: {lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}
+                        </span>
+                      </div>
                     </div>
                   </>
                 )}
@@ -352,9 +354,11 @@ export default function App() {
               </div>
 
               {/* [디버깅 영역] 하단에 현재 선택된 장치 ID와 탭 정보를 작게 표시 */}
-              <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>
-                selectedDeviceId: {bootstrap.selectedDeviceId ?? "(none)"} / tab: {tab}
-              </div>
+              {import.meta.env.DEV && (
+                <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>
+                  selectedDeviceId: {bootstrap.selectedDeviceId ?? "(none)"} / tab: {tab}
+                </div>
+              )}
             </main>
           </div>
         }

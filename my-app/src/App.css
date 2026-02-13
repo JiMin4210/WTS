@@ -18,3 +18,23 @@
     padding: 12px;
   }
 }
+
+/* ✅ 상태 확인/최종 수신 시각: 긴 문장이 모바일에서 깨지지 않게 */
+.statusTimes {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.statusTimes > span {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .statusTimes > span {
+    white-space: normal;
+    word-break: break-word;
+  }
+}

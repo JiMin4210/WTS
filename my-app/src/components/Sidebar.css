@@ -107,21 +107,21 @@
   background: #f6f6f6;
 }
 
-/* ✅ 데스크탑(hover 가능)에서는 '살짝 밀리고 버튼 등장' 연출 */
+/*
+  ✅ Hover ...
+  - ...
+  - ...
+  - ...
+
+  기존은 hover에서만 삭제 버튼이 보이게 했는데,
+  모바일 WebView/브라우저는 hover 판정이 애매해서(보이진 않는데 클릭이 되는 케이스)
+  삭제 버튼은 항상 표시하고, hover에서는 "강조"만 하도록 바꿉니다.
+*/
+
+/* 데스크탑에서만 살짝 '밀리는' 연출(모바일은 hover가 불명확해서 제외) */
 @media (hover: hover) and (pointer: fine) {
-  .sb__trashBtn {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .sb__card:hover .sb__trashBtn,
-  .sb__card:focus-visible .sb__trashBtn {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
   .sb__card:hover {
-    transform: translateX(-6px);
+    transform: translateX(-4px);
   }
 }
 
