@@ -9,28 +9,24 @@ import { BrowserRouter } from "react-router-dom";
 import "./styles/global.css";
 
 configureAmplify();
-
-// ✅ 시스템 다크모드에서 모바일 브라우저가 페이지를 임의로 어둡게 만드는 것을 최대한 방지
-// - 디자인은 '라이트 테마 고정' (데스크탑과 동일한 톤)
-// - index.html을 건드리지 않고도 메타 태그를 동적으로 추가
-function enforceLightColorScheme() {
+// 모바일 브라우저가 시스템 다크모드일 때 페이지를 임의로 어둡게 변환하는 현상을 최대한 방지
+(function forceLightColorScheme() {
   try {
     document.documentElement.style.colorScheme = "light";
-    const existing = document.querySelector('meta[name="color-scheme"]') as HTMLMetaElement | null;
-    if (existing) {
-      existing.content = "light";
-    } else {
-      const meta = document.createElement("meta");
-      meta.name = "color-scheme";
-      meta.content = "light";
-      document.head.appendChild(meta);
-    }
-  } catch {
-    // no-op
-  }
-}
+    const ensureMeta = (name: string, content: string) => {
+      let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.name = name;
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+    ensureMeta("color-scheme", "light");
+    ensureMeta("theme-color", "#f6f7fb");
+  } catch {}
+})();
 
-enforceLightColorScheme();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

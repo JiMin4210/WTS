@@ -270,18 +270,24 @@ export default function App() {
                           disabled={!bootstrap.selectedDeviceId || devLast.loading || series.loading}
                           title="선택된 디바이스의 상태/데이터를 다시 불러옵니다."
                         >
-                          <span className="refreshIcon" aria-hidden>↻</span>
-                          <span className="refreshText">새로고침</span>
+                          {(devLast.loading || series.loading) ? (
+                            <>
+                              <span className="refreshSpinner" aria-hidden />
+                              <span className="refreshText">새로고침 중</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="refreshIcon" aria-hidden>↻</span>
+                              <span className="refreshText">새로고침</span>
+                            </>
+                          )}
                         </button>
 
-                        {devLast.loading ? (
-                          <span className="muted statusHint">상태 확인 중…</span>
-                        ) : devLast.error ? (
+                        {devLast.error ? (
                           <span className="statusError">⚠️ 상태 정보를 불러오지 못했습니다.</span>
                         ) : null}
                       </div>
                     </div>
-                    
                   </>
                 )}
               </section>
