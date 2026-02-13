@@ -135,7 +135,7 @@
   .statusRow { gap: 10px; }
   .statusLeft { width: 100%; justify-content: space-between; }
   .refreshBtn { width: 40px; height: 40px; padding: 0; border-radius: 999px; }
-  .refreshBtn .refreshText { display: none; }
+  /* .refreshText는 모바일에서도 표시 */
 }
 
 /* --- Status row layout (consistent across desktop/mobile) --- */
@@ -151,12 +151,12 @@
   display:flex;
   align-items:center;
   gap:10px;
+  flex-wrap:wrap;
   min-width:0;
-  flex: 1 1 auto;
 }
 
 .metaInline{
-  display:flex;
+  display:inline-flex;
   align-items:baseline;
   gap:8px;
   min-width:0;
@@ -164,24 +164,28 @@
   font-size: 13px;
 }
 
-.metaInline .metaLabel{
-  white-space:nowrap;
-}
-
 .metaInline .metaValue{
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+  font-weight:600;
+  color: rgba(15,23,42,0.85);
+  word-break: break-word;
 }
 
 .statusRight{
   display:flex;
   align-items:center;
   gap:10px;
-  flex: 0 0 auto;
+  margin-left:auto;
+}
+
+.refreshBtn{
+  border-radius:999px;
+  padding:10px 12px;
+  white-space:nowrap;
 }
 
 @media (max-width: 520px){
-  .metaInline .metaValue{ white-space: normal; } /* allow wrap on small screens */
+  /* 상태칩은 1행, 마지막 수신은 자연스럽게 2행으로 내려가게 */
+  .metaInline{ flex-basis:100%; }
+  .refreshBtn{ padding:10px 12px; }
+  .refreshText{ font-size:12px; }
 }

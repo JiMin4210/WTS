@@ -130,7 +130,7 @@ a { color: inherit; }
 .chip--warn { background: rgba(245, 158, 11, 0.14); }
 .chip--warn::before{ background: #f59e0b; }
 
-.chip--offline { background: var(--danger-weak); }
+.chip--offline { background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.35); }
 .chip--offline::before{ background: var(--danger); }
 
 .chip--unknown { background: #f1f5f9; }

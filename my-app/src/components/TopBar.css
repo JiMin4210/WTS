@@ -46,12 +46,6 @@
   padding: 10px 12px;
 }
 
-@media (max-width: 420px) {
-  .topbar__actionText { display: none; }
-  .topbar__action { width: 40px; height: 40px; padding: 0; justify-content: center; }
-}
-
-
 .topbar__action{
   display: inline-flex;
   align-items: center;
@@ -64,6 +58,7 @@
   line-height: 1;
 }
 
-@media (max-width: 420px){
-  .topbar__titleSub{ display:none; }
+@media (max-width: 420px) {
+  .topbar__action { padding: 8px 10px; }
+  .topbar__actionText { font-size: 12px; }
 }
