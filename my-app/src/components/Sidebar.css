@@ -58,7 +58,7 @@
 }
 
 .sb__listWrap {
-  padding: 0 12px 12px;
+  padding: 4px 12px 12px;
   overflow-y: auto;
   flex: 1;
 }
@@ -73,11 +73,13 @@
 }
 
 .sb__card--create {
-  background: linear-gradient(180deg, var(--panel) 0%, var(--primary-weak) 120%);
+  background: linear-gradient(180deg, var(--panel) 0%, rgba(37, 99, 235, 0.06) 120%);
   border-style: dashed;
+  border-color: rgba(37, 99, 235, 0.28);
 }
 
 .sb__card--create:hover {
+  border-color: rgba(37, 99, 235, 0.45);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
 }
 
@@ -95,7 +97,7 @@
 }
 
 .sb__card:hover {
-  transform: translateY(-1px);
+  transform: translateY(0);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
@@ -160,17 +162,47 @@
   gap: 12px;
   align-items: center;
 }
+.sb__createText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.sb__createTitle {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.sb__createDesc {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sb__chev {
+  color: var(--muted);
+  opacity: 0.8;
+  flex: 0 0 auto;
+}
+
+.sb__card--create:hover .sb__chev {
+  color: var(--text);
+  opacity: 1;
+}
+
 
 .sb__plus {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--primary-weak);
   color: var(--primary);
-  font-weight: 900;
+  flex: 0 0 auto;
 }
 
 .sb__row {

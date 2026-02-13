@@ -94,12 +94,19 @@ export function Sidebar(props: {
               >
                 <div className="sb__createRow">
                   <span className="sb__plus" aria-hidden="true">
-                    +
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" focusable="false">
+                      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
                   </span>
                   <div className="sb__createText">
-                    <div className="sb__nick">디바이스 등록</div>
-                    <div className="sb__sub">새 기기를 추가합니다</div>
+                    <div className="sb__createTitle">디바이스 등록</div>
+                    <div className="sb__createDesc">새 기기를 추가합니다</div>
                   </div>
+                  <span className="sb__chev" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" focusable="false">
+                      <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
                 </div>
               </button>
             </li>
