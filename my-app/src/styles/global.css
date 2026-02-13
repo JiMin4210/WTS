@@ -14,6 +14,19 @@
 
   --radius: 14px;
   --radius-sm: 10px;
+
+  /* Chart tooltip (default: light) */
+  --tooltip-bg: rgba(255, 255, 255, 0.96);
+  --tooltip-border: rgba(15, 23, 42, 0.12);
+  --tooltip-text: var(--text);
+  --tooltip-title: var(--text);
+  --tooltip-cursor: rgba(15, 23, 42, 0.04);
+
+  /* Chart visual tokens */
+  --chart-bar: var(--primary);
+  --chart-label: rgba(15, 23, 42, 0.72);
+  --grid: rgba(15, 23, 42, 0.10);
+
 }
 
 /* 시스템 다크모드 대응: 라이트/다크 모두 자연스럽게 보이도록 변수만 교체 */
@@ -31,6 +44,19 @@
 
     --danger: #fb7185;
     --danger-weak: rgba(251, 113, 133, 0.18);
+
+    /* Chart tooltip (dark) */
+    --tooltip-bg: rgba(17, 26, 44, 0.96);
+    --tooltip-border: rgba(148, 163, 184, 0.28);
+    --tooltip-text: var(--text);
+    --tooltip-title: var(--text);
+    --tooltip-cursor: rgba(255, 255, 255, 0.06);
+
+    /* Chart visual tokens (dark) */
+    --chart-bar: var(--primary);
+    --chart-label: rgba(229, 231, 235, 0.78);
+    --grid: rgba(148, 163, 184, 0.22);
+
   }
 }
 

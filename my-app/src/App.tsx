@@ -331,7 +331,11 @@ export default function App() {
 
               {/* [메인 차트 영역] useSeries에서 가져온 데이터를 시각화함 */}
               <div style={{ marginTop: 16 }}>
-                <h3 style={{ marginBottom: 8 }}>{selectedNickname}</h3>
+                <div className="chartHeader">
+                  <div className="chartTitle" title={selectedNickname}>
+                    {selectedNickname}
+                  </div>
+                </div>
                 <SeriesChart
                   points={series.points} // 실제 그래프 데이터 전달
                   tab={tab}

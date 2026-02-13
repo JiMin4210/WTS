@@ -10,6 +10,9 @@ import {
   LabelList,
 } from "recharts";
 
+// NOTE: 차트 가독성(축/툴팁)은 사용자 테마(라이트/다크)에 맞춰 CSS 변수로 렌더링
+// - var(--panel/--border/--text/--muted)은 global.css에서 테마별로 이미 정의됨
+
 export function SeriesChart(props: {
   points: Point[];
   tab: Tab;
@@ -80,7 +83,7 @@ export function SeriesChart(props: {
           justifyContent: "space-between",
           gap: 8,
           marginBottom: 0,
-          color: "#6b7280",
+          color: "var(--muted)",
           fontSize: 12,
         }}
       >
@@ -95,25 +98,29 @@ export function SeriesChart(props: {
           barCategoryGap={preset.barCategoryGap}
           barGap={preset.barGap}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid stroke="var(--grid)" strokeDasharray="3 3" vertical={false} />
 
           {/* ✅ X축: 좌/우 padding으로 "왼쪽에 붙는 느낌" 제거 */}
           <XAxis
             dataKey="x"
+            axisLine={false}
+            tickLine={false}
             interval={xInterval}
             padding={preset.xPadding}
             tickFormatter={tickFormatter}
             height={22}
             tickMargin={10}
-            tick={{ fontSize: 13 }}
+            tick={{ fontSize: 12, fill: "var(--muted)" }}
           />
 
           {/* ✅ Y축: 생산량 라벨(왼쪽) + 위쪽 짤림 방지 여유는 margin.top에서 */}
           <YAxis
             allowDecimals={false}
+            axisLine={false}
+            tickLine={false}
             tickMargin={6}
             width={28}
-            tick={{ fontSize: 13 }}
+            tick={{ fontSize: 12, fill: "var(--muted)" }}
           />
 
           {/* ✅ 툴팁 수정부: 가로 늘어남 방지 및 데스크탑 최적화 */}
@@ -123,22 +130,23 @@ export function SeriesChart(props: {
 
             // 2. 상자 스타일: 콤팩트한 비율 유지
             contentStyle={{
-              width: "115px",
-              padding: "6px 10px",
-              fontSize: "12px",
-              borderRadius: "6px",
-              backgroundColor: "rgba(255, 255, 255, 0.95)",
-              border: "1px solid #d1d1d1",
-              boxShadow: "2px 2px 5px rgba(0,0,0,0.05)",
+              maxWidth: 180,
+              padding: "8px 10px",
+              fontSize: "13px",
+              borderRadius: "10px",
+              backgroundColor: "var(--tooltip-bg)",
+              border: "1px solid var(--tooltip-border)",
+              boxShadow: "var(--shadow)",
+              color: "var(--tooltip-text)",
             }}
 
             // 3. 텍스트 및 제목 스타일
-            itemStyle={{ fontSize: "12px", padding: "0px", margin: "0px", color: "#333" }}
-            labelStyle={{ fontSize: "12px", fontWeight: "bold", marginBottom: "3px", color: "#000" }}
+            itemStyle={{ fontSize: "13px", padding: "0px", margin: "0px", color: "var(--tooltip-text)" }}
+            labelStyle={{ fontSize: "13px", fontWeight: 800 as any, marginBottom: "4px", color: "var(--tooltip-title)" }}
 
             // 4. 위치 디테일
             offset={12}
-            cursor={{ fill: "rgba(0, 0, 0, 0.04)" }} // 마우스 오버 시 막대 배경
+            cursor={{ fill: "var(--tooltip-cursor)" }} // 마우스 오버 시 막대 배경
 
             wrapperStyle={{ zIndex: 1000, outline: 'none' }}
             labelFormatter={(label) => tooltipLabel(String(label))}
@@ -146,7 +154,7 @@ export function SeriesChart(props: {
           />
 
           {/* ✅ 막대: 탭별 두께(barSize)로 답답함 해소 */}
-          <Bar dataKey="y" isAnimationActive={false} barSize={preset.barSize}>
+          <Bar dataKey="y" isAnimationActive={false} barSize={preset.barSize} fill="var(--chart-bar)" radius={[8, 8, 0, 0]}>
             {/* ✅ 값 라벨: 0은 숨김, 위쪽 짤림 방지를 위해 offset 조정 */}
             {showValueLabels ? (
               <LabelList
@@ -154,7 +162,7 @@ export function SeriesChart(props: {
                 position="top"
                 offset={6}
                 formatter={hideZeroLabel}
-                style={{ fontSize: 10, fill: "#666", fontWeight: 500 }}
+                style={{ fontSize: 10, fill: "var(--chart-label)", fontWeight: 700 }}
               />
             ) : null}
           </Bar>
