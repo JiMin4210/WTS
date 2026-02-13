@@ -255,30 +255,33 @@ export default function App() {
                     {/* 상태 영역 */}
                     <div className="statusRow">
                       <div className="statusLeft">
-                      <span className={`chip chip--${st.tone}`}>{st.label}</span>
-                      <button
-                        onClick={refreshDeviceAll}
-                        className="btn btnSm btnGhost refreshBtn"
-                        disabled={!bootstrap.selectedDeviceId || devLast.loading || series.loading}
-                        title="선택된 디바이스의 상태/데이터를 다시 불러옵니다."
-                      >
-                        <span className="refreshIcon" aria-hidden>↻</span>
-                        <span className="refreshText">새로고침</span>
-                      </button>
-                      {devLast.loading ? (
-                        <span className="muted statusHint">상태 확인 중…</span>
-                      ) : devLast.error ? (
-                        <span className="statusError">⚠️ 상태 정보를 불러오지 못했습니다.</span>
-                      ) : null}
+                        <span className={`chip chip--${st.tone}`}>{st.label}</span>
+
+                        <span className="metaInline">
+                          <span className="metaLabel">마지막 수신</span>
+                          <span className="metaValue">{lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}</span>
+                        </span>
                       </div>
 
-                      <div className="metaLine">
-                      <span className="metaItem">
-                        <span className="metaLabel">마지막 수신</span>
-                        <span className="metaValue">{lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}</span>
-                      </span>
+                      <div className="statusRight">
+                        <button
+                          onClick={refreshDeviceAll}
+                          className="btn btnSm btnGhost refreshBtn"
+                          disabled={!bootstrap.selectedDeviceId || devLast.loading || series.loading}
+                          title="선택된 디바이스의 상태/데이터를 다시 불러옵니다."
+                        >
+                          <span className="refreshIcon" aria-hidden>↻</span>
+                          <span className="refreshText">새로고침</span>
+                        </button>
+
+                        {devLast.loading ? (
+                          <span className="muted statusHint">상태 확인 중…</span>
+                        ) : devLast.error ? (
+                          <span className="statusError">⚠️ 상태 정보를 불러오지 못했습니다.</span>
+                        ) : null}
                       </div>
                     </div>
+             
                   </>
                 )}
               </section>

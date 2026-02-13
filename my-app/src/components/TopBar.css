@@ -50,3 +50,20 @@
   .topbar__actionText { display: none; }
   .topbar__action { width: 40px; height: 40px; padding: 0; justify-content: center; }
 }
+
+
+.topbar__action{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.topbar__actionIcon{
+  display: inline-flex;
+}
+.topbar__actionText{
+  line-height: 1;
+}
+
+@media (max-width: 420px){
+  .topbar__titleSub{ display:none; }
+}

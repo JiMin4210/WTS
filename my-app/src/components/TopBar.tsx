@@ -43,9 +43,17 @@ export function TopBar(props: {
       </div>
 
       <div className="topbar__right">
-        {props.isLoggedIn ? (
-          <button className="btn btnSm btnGhost topbar__action" onClick={props.onLogout}>
-            로그아웃
+                {props.isLoggedIn ? (
+          <button
+            className="btn btnSm btnGhost topbar__action"
+            onClick={props.onLogout}
+            aria-label="로그아웃"
+            title="로그아웃"
+          >
+            <span className="topbar__actionIcon" aria-hidden>
+              <IconLogout />
+            </span>
+            <span className="topbar__actionText">로그아웃</span>
           </button>
         ) : (
           <button className="btn btnSm btnGhost topbar__action" onClick={props.onLogin}>
