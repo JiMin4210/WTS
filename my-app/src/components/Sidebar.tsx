@@ -157,7 +157,7 @@ export function Sidebar(props: {
           onRegistered={async (newDeviceId) => {
             await props.onRegistered(newDeviceId);
             setRegOpen(false);
-            closeIfNarrow();
+            // ✅ 등록 완료 후에는 사이드바를 닫지 않음(사용자 요청)
           }}
         />
       </aside>

@@ -61,7 +61,8 @@
 /* 바디(스크롤 영역) */
 .modal__body {
   padding: 14px 16px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden; /* ✅ 불필요한 가로 스크롤 제거 */
 }
 
 /* 폼 */
