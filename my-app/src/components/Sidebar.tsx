@@ -57,7 +57,7 @@ export function Sidebar(props: {
                   onClick={() => props.onSelectDevice(d.deviceId)}
                 >
                   <div className="sb__nick">{d.nickname}</div>
-                  <div className="sb__id">{d.deviceId}</div>
+                  {import.meta.env.DEV && <div className="sb__id">{d.deviceId}</div>}
 
                   {/* ✅ 삭제 버튼 */}
                   <div className="sb__action">

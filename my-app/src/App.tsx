@@ -77,12 +77,12 @@ function normalizeEpochMs(ts: number | null): number | null {
 
 // ✅ 수동 새로고침 모델용 상태 계산
 function computeStatus(lastServerTsMs: number | null) {
-  if (!lastServerTsMs) return { text: "⚪ 알 수 없음", tone: "unknown" as const };
+  if (!lastServerTsMs) return { label: "알 수 없음", tone: "unknown" as const };
 
   const diffMin = (Date.now() - lastServerTsMs) / 1000 / 60;
-  if (diffMin > 20) return { text: "🔴 오프라인", tone: "offline" as const };
-  if (diffMin > 10) return { text: "🟡 연결 불안정", tone: "warn" as const };
-  return { text: "🟢 온라인", tone: "online" as const };
+  if (diffMin > 20) return { label: "오프라인", tone: "offline" as const };
+  if (diffMin > 10) return { label: "연결 불안정", tone: "warn" as const };
+  return { label: "온라인", tone: "online" as const };
 }
 
 export default function App() {
@@ -210,119 +210,79 @@ export default function App() {
               {/* [탭 메뉴] 일/월/연 선택창. 클릭 시 부모의 tab 상태가 변함 */}
               <Tabs tab={tab} onChange={setTab} />
 
-              {/* [중앙 컨트롤 박스] 날짜 이동 및 장치 상태 확인 영역 */}
-              <div
-                style={{
-                  marginTop: 12,
-                  padding: 12,
-                  border: "1px solid #ddd",
-                  borderRadius: 8,
-                }}
-              >
-
-                {/* 조건부 렌더링: 장치를 선택하지 않았을 때의 안내 문구 */}
+              {/* [중앙 컨트롤 카드] 날짜 이동 + 상태(선택 1대) */}
+              <section className="controlCard card">
                 {!bootstrap.selectedDeviceId ? (
-                  <div>좌측에서 디바이스를 선택해주세요.</div>
+                  <div className="muted">좌측에서 디바이스를 선택해주세요.</div>
                 ) : (
                   <>
-                    {/* [날짜 이동 컨트롤] 현재 선택된 탭(tab)에 따라 다른 버튼을 보여줌 (조건부 렌더링) */}
+                    {/* 날짜 네비게이터 (탭별) */}
                     {tab === "day" && (
-                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                        <button onClick={() => moveDay(-1)}>◀</button>
-                        <b>{dayDate}</b>
-                        <button onClick={() => moveDay(+1)}>▶</button>
+                      <div className="dateNavRow">
+                        <button className="iconBtn" onClick={() => moveDay(-1)} aria-label="이전 날짜">◀</button>
+                        <div className="dateNavCenter" aria-live="polite">
+                          <div className="dateNavLabel">일</div>
+                          <div className="dateNavValue">{dayDate}</div>
+                        </div>
+                        <button className="iconBtn" onClick={() => moveDay(+1)} aria-label="다음 날짜">▶</button>
                       </div>
                     )}
 
                     {tab === "month" && (
-                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                        <button onClick={() => moveMonth(-1)}>◀</button>
-                        <b>{monthYearMonth}</b>
-                        <button onClick={() => moveMonth(+1)}>▶</button>
+                      <div className="dateNavRow">
+                        <button className="iconBtn" onClick={() => moveMonth(-1)} aria-label="이전 달">◀</button>
+                        <div className="dateNavCenter" aria-live="polite">
+                          <div className="dateNavLabel">월</div>
+                          <div className="dateNavValue">{monthYearMonth}</div>
+                        </div>
+                        <button className="iconBtn" onClick={() => moveMonth(+1)} aria-label="다음 달">▶</button>
                       </div>
                     )}
 
                     {tab === "year" && (
-                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                        <button onClick={() => moveYear(-1)}>◀</button>
-                        <b>{year}</b>
-                        <button onClick={() => moveYear(+1)}>▶</button>
+                      <div className="dateNavRow">
+                        <button className="iconBtn" onClick={() => moveYear(-1)} aria-label="이전 연도">◀</button>
+                        <div className="dateNavCenter" aria-live="polite">
+                          <div className="dateNavLabel">연</div>
+                          <div className="dateNavValue">{year}</div>
+                        </div>
+                        <button className="iconBtn" onClick={() => moveYear(+1)} aria-label="다음 연도">▶</button>
                       </div>
                     )}
+{/* ✅ 선택된 1대 상태 표시 + 새로고침 */}
+                    <div className="controlDivider" />
 
-                    {/* ✅ 선택된 1대 상태 표시 + 새로고침 */}
-                    <div
-                      style={{
-                        marginTop: 10,
-                        display: "flex",
-                        gap: 10,
-                        alignItems: "center",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {/* 수동 새로고침 버튼: 클릭 시 refreshDeviceAll 실행 */}
+                    {/* 상태 영역 */}
+		    {/* 수동 새로고침 버튼: 클릭 시 refreshDeviceAll 실행 */}
+                    <div className="statusRow">
                       <button
                         onClick={refreshDeviceAll}
-                        style={{
-                          padding: "6px 10px",
-                          borderRadius: 8,
-                          border: "1px solid #ccc",
-                          background: "white",
-                          cursor: "pointer",
-                        }}
-                        // 버튼 비활성화 조건: 장치 미선택이거나 현재 로딩 중일 때 (중복 클릭 방지)
-                        disabled={!bootstrap.selectedDeviceId || devLast.loading || series.loading} // 디바이스를 아직 안 골랐거나 / 이미 조회 중일 때 버튼을 눌러도 의미가 없거나(대상 없음), 중복 요청이 연속으로 나가서 비용·혼선이 생길 수 있어서 막아둔 것
-                        title="선택된 디바이스의 상태 정보를 다시 불러옵니다." // 버튼에 마우스를 올리면 뜨는 **툴팁(설명말)**이라서, 사용자가 “이 버튼이 뭘 하는지” 바로 이해하고, 접근성(키보드/보조기기)에도 도움됨
+                        className="btn btnSm btnGhost"
+                        disabled={!bootstrap.selectedDeviceId || devLast.loading || series.loading}
+                        title="선택된 디바이스의 상태/데이터를 다시 불러옵니다."
                       >
-                        ↻ 상태 새로고침
+                        ↻ 새로고침
                       </button>
 
-                      {/* 상태 뱃지 */}
                       {devLast.loading ? (
-                        <span style={{ fontSize: 12, color: "#666" }}>상태 확인 중…</span>
+                        <span className="muted statusHint">상태 확인 중…</span>
                       ) : devLast.error ? (
-                        <span style={{ fontSize: 12, color: "#b00" }}>
-                          ⚠️ 상태 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
-                        </span>
+                        <span className="statusError">⚠️ 상태 정보를 불러오지 못했습니다.</span>
                       ) : (
-                        <span
-                          style={{
-                            fontSize: 12,
-                            padding: "4px 10px",
-                            borderRadius: 999,
-                            border: "1px solid #ddd",
-                            // st.tone(온라인/경고/오프라인)에 따라 배경색 동적 변경
-                            background:
-                              st.tone === "online"
-                                ? "#eafff1"
-                                : st.tone === "warn"
-                                  ? "#fff7df"
-                                  : st.tone === "offline"
-                                    ? "#ffecec"
-                                    : "#f4f4f4",
-                          }}
-                        >
-                          {st.text} {/* "온라인", "오프라인" 등의 텍스트 출력 */}
-                        </span>
+                        <span className={`chip chip--${st.tone}`}>{st.label}</span>
                       )}
 
-                      <div className="statusTimes">
-                        {/* ✅ 사용자 기준 "상태 확인 시각" */}
-                        <span>
-                          상태 확인 시각: {lastCheckedAt ? formatDateTime(lastCheckedAt) : "-"}
-                        </span>
-
-                        {/* ✅ 기기 기준 "최종 수신 시각" */}
-                        <span>
-                          기기 최종 수신 시각: {lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}
+                      <div className="metaLine">
+                        <span className="metaItem">
+                          <span className="metaLabel">마지막 수신</span>
+                          <span className="metaValue">{lastServerTsMs ? formatDateTime(lastServerTsMs) : "-"}</span>
                         </span>
                       </div>
                     </div>
                   </>
                 )}
-              </div>
-              
-              {/* [데이터 로딩 알림] 시계열 데이터(차트 데이터) 로딩 중일 때 표시 */}
+              </section>
+{/* [데이터 로딩 알림] 시계열 데이터(차트 데이터) 로딩 중일 때 표시 */}
               {series.loading && <div style={{ marginTop: 12 }}>로딩 중...</div>}
 
               {/* [에러 메시지 박스] 장치 정보나 차트 데이터 로딩 중 에러 발생 시 검은 박스 출력 */}
@@ -351,6 +311,11 @@ export default function App() {
                   monthYearMonth={monthYearMonth}
                   year={year}
                 />
+              </div>
+
+              {/* ✅ 사용자 동작 기준(수동 새로고침/자동조회) 시각: 화면 하단 좌측 */}
+              <div className="lastChecked muted">
+                마지막 새로고침: {lastCheckedAt ? formatDateTime(lastCheckedAt) : "-"}
               </div>
 
               {/* [디버깅 영역] 하단에 현재 선택된 장치 ID와 탭 정보를 작게 표시 */}

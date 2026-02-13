@@ -38,3 +38,81 @@
     word-break: break-word;
   }
 }
+
+
+/* ====== 컨트롤(날짜/상태) 카드 ====== */
+.controlCard {
+  margin-top: 12px;
+  padding: 14px;
+}
+
+.dateNavRow {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 10px;
+}
+
+.dateNavCenter {
+  text-align: center;
+  line-height: 1.1;
+}
+.dateNavLabel {
+  font-size: 12px;
+  color: var(--muted);
+}
+.dateNavValue {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.controlDivider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.statusHint { font-size: 12px; }
+.statusError { font-size: 12px; color: #b91c1c; }
+
+.metaLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.metaItem {
+  display: inline-flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 12px;
+  color: var(--muted);
+}
+.metaLabel { white-space: nowrap; }
+.metaValue { font-weight: 600; color: rgba(15,23,42,0.85); }
+
+/* 하단 메타(마지막 새로고침) */
+.lastChecked {
+  margin-top: 14px;
+  font-size: 12px;
+}
+
+/* 모바일: 오른쪽 정렬(metaLine)을 아래로 자연스럽게 내려줌 */
+@media (max-width: 640px) {
+  .metaLine {
+    width: 100%;
+    margin-left: 0;
+  }
+  .dateNavValue {
+    font-size: 16px;
+  }
+}

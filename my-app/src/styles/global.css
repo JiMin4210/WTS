@@ -77,6 +77,18 @@ a { color: inherit; }
 }
 .btnPrimary:disabled { opacity: 0.6; cursor: not-allowed; }
 
+.btnGhost {
+  background: #fff;
+}
+.btnGhost:hover { border-color: rgba(37, 99, 235, 0.35); box-shadow: 0 0 0 3px var(--primary-weak); }
+.btnGhost:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btnSm {
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
 /* 공통 입력 */
 .input {
   width: 100%;
@@ -91,3 +103,35 @@ a { color: inherit; }
 /* 작은 보조텍스트 */
 .muted { color: var(--muted); }
 
+
+
+/* 공통 상태 칩(온라인/불안정/오프라인/알 수 없음) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+.chip::before{
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #94a3b8;
+}
+.chip--online { background: var(--primary-weak); }
+.chip--online::before{ background: #22c55e; }
+
+.chip--warn { background: rgba(245, 158, 11, 0.14); }
+.chip--warn::before{ background: #f59e0b; }
+
+.chip--offline { background: var(--danger-weak); }
+.chip--offline::before{ background: var(--danger); }
+
+.chip--unknown { background: #f1f5f9; }
+.chip--unknown::before{ background: #94a3b8; }
