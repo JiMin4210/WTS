@@ -293,7 +293,7 @@ export default function App() {
                                     ↻
                                   </span>
                                 )}
-                                <span className="refreshText">{isRefreshing ? "새로고침 중" : "새로고침"}</span>
+                                <span className="refreshText">새로고침</span>
                               </button>
 
                               {devLast.error ? (
@@ -307,8 +307,6 @@ export default function App() {
                   </>
                 )}
               </section>
-{/* [데이터 로딩 알림] 시계열 데이터(차트 데이터) 로딩 중일 때 표시 */}
-              {series.loading && <div style={{ marginTop: 12 }}>로딩 중...</div>}
 
               {/* [에러 메시지 박스] 장치 정보나 차트 데이터 로딩 중 에러 발생 시 검은 박스 출력 */}
               {(bootstrap.error || series.error) && (
@@ -344,11 +342,12 @@ export default function App() {
               </div>
 
               {/* [디버깅 영역] 하단에 현재 선택된 장치 ID와 탭 정보를 작게 표시 */}
-              {import.meta.env.DEV && (
+              {import.meta.env.DEV ? (
                 <div style={{ marginTop: 16, color: "#777", fontSize: 12 }}>
                   selectedDeviceId: {bootstrap.selectedDeviceId ?? "(none)"} / tab: {tab}
                 </div>
-              )}
+              ) : null}
+
             </main>
           </div>
         }
