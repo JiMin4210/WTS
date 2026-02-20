@@ -9,7 +9,50 @@ type AdminDeviceLast = {
   lastServerTs?: number | null;
   lastReason?: string | null;
   lastDelta?: number | null;
+  boot?: number | null;
+  seq?: number | null;
+  swVersion?: string | null;
+  plcHex?: string | null;
+  espHex?: string | null;
 };
+
+function clip(s: string, max = 48) {
+  const t = String(s ?? "");
+  if (t.length <= max) return t;
+  return `${t.slice(0, Math.max(0, max - 3))}...`;
+}
+
+function CopyButton(props: { value: string; label?: string }) {
+  const { value, label = "복사" } = props;
+  const [done, setDone] = useState(false);
+
+  async function onCopy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setDone(true);
+      window.setTimeout(() => setDone(false), 900);
+    } catch {
+      // clipboard 권한/환경 실패 시에는 아무 동작도 하지 않음
+    }
+  }
+
+  return (
+    <button
+      onClick={onCopy}
+      style={{
+        padding: "4px 8px",
+        borderRadius: 8,
+        border: "1px solid #ddd",
+        background: "white",
+        cursor: "pointer",
+        fontSize: 12,
+      }}
+      title="클립보드로 복사"
+    >
+      {done ? "✓" : label}
+    </button>
+  );
+}
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -49,6 +92,7 @@ export function AdminPage() {
   const [items, setItems] = useState<AdminDeviceLast[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   async function load() {
     setLoading(true);
@@ -149,50 +193,109 @@ export function AdminPage() {
           {sorted.map((it) => {
             const lastMs = normalizeEpochMs(it.lastServerTs ?? null);
             const st = computeStatus(lastMs);
+            const isOpen = !!expanded[it.deviceId];
 
             return (
-              <div
-                key={it.deviceId}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "220px 140px 200px 90px 1fr",
-                  gap: 10,
-                  padding: "10px 12px",
-                  borderBottom: "1px solid #f2f2f2",
-                  alignItems: "center",
-                }}
-              >
-                <div style={{ fontFamily: "monospace" }}>{it.deviceId}</div>
+              <div key={it.deviceId} style={{ borderBottom: "1px solid #f2f2f2" }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "220px 140px 200px 90px 1fr 88px",
+                    gap: 10,
+                    padding: "10px 12px",
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ fontFamily: "monospace" }}>{it.deviceId}</div>
 
-                <div style={{ fontSize: 12 }}>
-                  <span
+                  <div style={{ fontSize: 12 }}>
+                    <span
+                      style={{
+                        padding: "3px 10px",
+                        borderRadius: 999,
+                        border: "1px solid #ddd",
+                        background:
+                          st.tone === "online"
+                            ? "#eafff1"
+                            : st.tone === "warn"
+                            ? "#fff7df"
+                            : st.tone === "offline"
+                            ? "#ffecec"
+                            : "#f4f4f4",
+                      }}
+                    >
+                      {st.text}
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: 12, color: "#666" }}>
+                    최종 수신: {lastMs ? formatDateTime(lastMs) : "-"}
+                  </div>
+
+                  <div style={{ fontSize: 12 }}>Δ {it.lastDelta ?? "-"}</div>
+
+                  <div style={{ fontSize: 12, color: "#666", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {it.lastReason ?? "-"}
+                  </div>
+
+                  <button
+                    onClick={() => setExpanded((p) => ({ ...p, [it.deviceId]: !p[it.deviceId] }))}
                     style={{
-                      padding: "3px 10px",
-                      borderRadius: 999,
+                      padding: "6px 10px",
+                      borderRadius: 8,
                       border: "1px solid #ddd",
-                      background:
-                        st.tone === "online"
-                          ? "#eafff1"
-                          : st.tone === "warn"
-                          ? "#fff7df"
-                          : st.tone === "offline"
-                          ? "#ffecec"
-                          : "#f4f4f4",
+                      background: "white",
+                      cursor: "pointer",
+                      fontSize: 12,
                     }}
                   >
-                    {st.text}
-                  </span>
+                    {isOpen ? "닫기" : "상세"}
+                  </button>
                 </div>
 
-                <div style={{ fontSize: 12, color: "#666" }}>
-                  최종 수신: {lastMs ? formatDateTime(lastMs) : "-"}
-                </div>
+                {isOpen ? (
+                  <div style={{ padding: "0 12px 12px 12px" }}>
+                    <div
+                      style={{
+                        border: "1px solid #eee",
+                        borderRadius: 10,
+                        padding: 10,
+                        background: "#fafafa",
+                        display: "grid",
+                        gridTemplateColumns: "160px 1fr",
+                        gap: 8,
+                        fontSize: 12,
+                        color: "#333",
+                      }}
+                    >
+                      <div style={{ color: "#666" }}>swVersion</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontFamily: "monospace" }}>{it.swVersion ?? "-"}</span>
+                      </div>
 
-                <div style={{ fontSize: 12 }}>Δ {it.lastDelta ?? "-"}</div>
+                      <div style={{ color: "#666" }}>boot / seq</div>
+                      <div style={{ fontFamily: "monospace" }}>
+                        {it.boot ?? "-"} / {it.seq ?? "-"}
+                      </div>
 
-                <div style={{ fontSize: 12, color: "#666" }}>
-                  {it.lastReason ?? "-"}
-                </div>
+                      <div style={{ color: "#666" }}>plc_hex (last)</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                        <span style={{ fontFamily: "monospace", wordBreak: "break-all" }}>
+                          {it.plcHex ? clip(it.plcHex, 96) : "-"}
+                        </span>
+                        {it.plcHex ? <CopyButton value={it.plcHex} /> : null}
+                      </div>
+
+                      <div style={{ color: "#666" }}>esp_hex (last)</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                        <span style={{ fontFamily: "monospace", wordBreak: "break-all" }}>
+                          {it.espHex ? clip(it.espHex, 96) : "-"}
+                        </span>
+                        {it.espHex ? <CopyButton value={it.espHex} /> : null}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             );
           })}

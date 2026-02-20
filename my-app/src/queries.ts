@@ -81,6 +81,11 @@ export const Q_ADMIN_LIST_DEVICE_LAST = /* GraphQL */ `
       lastServerTs
       lastReason
       lastDelta
+      boot
+      seq
+      swVersion
+      plcHex
+      espHex
     }
   }
 `;

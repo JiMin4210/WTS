@@ -74,8 +74,12 @@ export function SeriesChart(props: {
   const nonZeroCount = data.filter((d) => (d?.y ?? 0) > 0).length;
   const showValueLabels = tab === "day" ? nonZeroCount <= 10 : tab === "month" ? nonZeroCount <= 8 : nonZeroCount <= 12;
 
+  // ✅ 탭별 총 생산량(그래프 값 합계)
+  const total = data.reduce((acc, cur) => acc + (Number(cur?.y ?? 0) || 0), 0);
+  const totalLabel = "총 생산량";
+
   return (
-    <div style={{ width: "100%", height: 360 }}>
+    <div style={{ width: "100%" }}>
       {/* ✅ 축 제목은 축 옆이 아니라 "상단 작은 글씨"로 표시해서 가로 공간을 확보 */}
       <div
         style={{
@@ -91,7 +95,8 @@ export function SeriesChart(props: {
         <span>{axisInfo.xLabel}</span>
       </div>
 
-      <ResponsiveContainer>
+      <div style={{ width: "100%", height: 360 }}>
+        <ResponsiveContainer>
         <BarChart
           data={data}
           margin={preset.margin}
@@ -167,7 +172,25 @@ export function SeriesChart(props: {
             ) : null}
           </Bar>
         </BarChart>
-      </ResponsiveContainer>
+        </ResponsiveContainer>
+      </div>
+
+      {/* ✅ 그래프 아래 총합(탭별 그래프 값의 합) */}
+      <div
+        style={{
+          marginTop: 8,
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          gap: 8,
+          fontSize: 13,
+          color: "var(--text)",
+          fontWeight: 800,
+        }}
+      >
+        <span style={{ color: "var(--muted)", fontWeight: 700 }}>{totalLabel}</span>
+        <span>{Number.isFinite(total) ? total.toLocaleString() : "-"}개</span>
+      </div>
 
     </div>
   );
