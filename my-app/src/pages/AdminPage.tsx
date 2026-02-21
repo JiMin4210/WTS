@@ -92,6 +92,11 @@ type OtaUiState =
   | { state: "timeout"; requestedAtMs: number }
   | { state: "failed"; requestedAtMs: number; message?: string };
 
+type ManifestInfo = {
+  version: string;
+  url?: string;
+};
+
 function parseEventMs(ev: DeviceEvent): number | null {
   // 1) eventKey에 ts#<epochMs>#... 형태가 있으면 그걸 우선
   const ek = String(ev.eventKey ?? "");
@@ -111,6 +116,30 @@ function formatLeft(ms: number) {
   const mm = Math.floor(s / 60);
   const ss = s % 60;
   return `${mm}:${pad2(ss)}`;
+}
+
+function parseSemver(v: string) {
+  // "0.1.10" -> [0,1,10]
+  return String(v)
+    .trim()
+    .split(".")
+    .map((x) => {
+      const n = Number(x);
+      return Number.isFinite(n) ? n : 0;
+    });
+}
+
+function cmpSemver(a: string, b: string) {
+  const aa = parseSemver(a);
+  const bb = parseSemver(b);
+  const n = Math.max(aa.length, bb.length);
+  for (let i = 0; i < n; i++) {
+    const x = aa[i] ?? 0;
+    const y = bb[i] ?? 0;
+    if (x > y) return 1;
+    if (x < y) return -1;
+  }
+  return 0;
 }
 
 function ConfirmModal(props: {
@@ -204,6 +233,13 @@ export function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
+  // UI 시간(카운트다운 렌더용). 폴링 tick만으로는 초단위 표시가 갱신되지 않아 별도 ticker를 둠.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  // 최신 펌웨어(manifest) 정보(있으면 FOTA 버튼 활성/비활성 판단)
+  const [manifest, setManifest] = useState<ManifestInfo | null>(null);
+  const [manifestErr, setManifestErr] = useState<string | null>(null);
+
   // OTA UI 상태 (deviceId별)
   const [otaUi, setOtaUi] = useState<Record<string, OtaUiState>>({});
   const timersRef = useRef<Record<string, number>>({});
@@ -211,6 +247,46 @@ export function AdminPage() {
     open: false,
   });
   const [modalBusy, setModalBusy] = useState(false);
+
+  // manifest 1회 로드 (Vite: VITE_FW_MANIFEST_URL)
+  useEffect(() => {
+    const url = (import.meta as any).env?.VITE_FW_MANIFEST_URL as string | undefined;
+    if (!url) {
+      setManifest(null);
+      setManifestErr(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        setManifestErr(null);
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error(`manifest HTTP ${res.status}`);
+        const j = (await res.json()) as any;
+        const v = String(j?.version ?? "").trim();
+        if (!v) throw new Error("manifest version 없음");
+        const info: ManifestInfo = { version: v, url: j?.url ? String(j.url) : undefined };
+        if (!cancelled) setManifest(info);
+      } catch (e: any) {
+        if (!cancelled) {
+          setManifest(null);
+          setManifestErr(String(e?.message ?? e));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 카운트다운 표시용 ticker
+  useEffect(() => {
+    // 폴링/대기 상태가 하나라도 있으면 1초 ticker 동작
+    const hasActive = Object.values(otaUi).some((s) => s?.state === "requested" || s?.state === "started");
+    if (!hasActive) return;
+    const id = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [otaUi]);
 
   async function load() {
     setLoading(true);
@@ -494,6 +570,22 @@ export function AdminPage() {
             const st = computeStatus(lastMs);
             const isOpen = !!expanded[it.deviceId];
 
+            const curVer = (it.swVersion ?? "").trim();
+            const latestVer = (manifest?.version ?? "").trim();
+
+            const hasManifest = !!latestVer;
+            const canCompare = !!curVer && hasManifest;
+            const updateAvailable = canCompare ? cmpSemver(latestVer, curVer) > 0 : false;
+            const otaEnabled = st.tone === "online" && hasManifest && !!curVer && updateAvailable;
+
+            const otaDisabledReason = (() => {
+              if (st.tone !== "online") return "오프라인(또는 상태 불안정)";
+              if (!hasManifest) return manifestErr ? `manifest 조회 실패(${manifestErr})` : "manifest 미설정";
+              if (!curVer) return "현재 버전 정보 없음";
+              if (!updateAvailable) return "최신 버전 없음";
+              return null;
+            })();
+
             return (
               <div key={it.deviceId} style={{ borderBottom: "1px solid #f2f2f2" }}>
                 <div
@@ -570,11 +662,27 @@ export function AdminPage() {
                       >
                         <div style={{ fontSize: 12, color: "#333" }}>
                           <div style={{ fontWeight: 700, marginBottom: 2 }}>FOTA</div>
+                          <div style={{ color: "#666", marginBottom: 4 }}>
+                            현재: <span style={{ fontFamily: "monospace" }}>{curVer || "-"}</span> · 최신: {hasManifest ? (
+                              <span style={{ fontFamily: "monospace" }}>{latestVer}</span>
+                            ) : (
+                              <span>미확인</span>
+                            )}
+                          </div>
                           {(() => {
                             const st = otaUi[it.deviceId] ?? { state: "idle" as const };
-                            if (st.state === "idle") return <div style={{ color: "#666" }}>대기</div>;
+                            if (st.state === "idle") {
+                              return (
+                                <div style={{ color: "#666" }}>
+                                  대기
+                                  {otaDisabledReason ? (
+                                    <span style={{ marginLeft: 8, color: "#999" }}>· {otaDisabledReason}</span>
+                                  ) : null}
+                                </div>
+                              );
+                            }
                             if (st.state === "requested") {
-                              const left = 5 * 60 * 1000 - (Date.now() - st.requestedAtMs);
+                              const left = 5 * 60 * 1000 - (nowMs - st.requestedAtMs);
                               return (
                                 <div>
                                   요청됨 · 확인 중… <span style={{ color: "#666" }}>({formatLeft(left)})</span>
@@ -582,7 +690,7 @@ export function AdminPage() {
                               );
                             }
                             if (st.state === "started") {
-                              const left = 5 * 60 * 1000 - (Date.now() - st.requestedAtMs);
+                              const left = 5 * 60 * 1000 - (nowMs - st.requestedAtMs);
                               return (
                                 <div>
                                   다운로드 시작 감지 · 완료 대기… <span style={{ color: "#666" }}>({formatLeft(left)})</span>
@@ -600,19 +708,21 @@ export function AdminPage() {
                           <button
                             type="button"
                             onClick={() => {
+                              if (!otaEnabled) return;
                               setModal({ open: true, deviceId: it.deviceId, swVersion: it.swVersion ?? null });
                             }}
+                            disabled={!otaEnabled}
                             style={{
                               padding: "8px 10px",
                               borderRadius: 10,
                               border: "1px solid #222",
-                              background: "#111",
-                              color: "white",
-                              cursor: "pointer",
+                              background: otaEnabled ? "#111" : "#eee",
+                              color: otaEnabled ? "white" : "#777",
+                              cursor: otaEnabled ? "pointer" : "not-allowed",
                               fontSize: 12,
                               fontWeight: 700,
                             }}
-                            title="이 디바이스에 대해 OTA를 실행합니다"
+                            title={otaEnabled ? "이 디바이스에 대해 OTA를 실행합니다" : (otaDisabledReason ?? "실행 불가")}
                           >
                             FOTA 실행
                           </button>
