@@ -32,6 +32,7 @@ jobs:
           VITE_COGNITO_USER_POOL_CLIENT_ID=${{ secrets.VITE_COGNITO_USER_POOL_CLIENT_ID }}
           VITE_COGNITO_DOMAIN=${{ secrets.VITE_COGNITO_DOMAIN }}
           VITE_APPSYNC_URL=${{ secrets.VITE_APPSYNC_URL }}
+          VITE_FW_MANIFEST_URL=${{ secrets.VITE_FW_MANIFEST_URL }}
           EOF
 
       - name: Install dependencies
