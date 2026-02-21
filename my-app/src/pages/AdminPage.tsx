@@ -248,7 +248,7 @@ export function AdminPage() {
   });
   const [modalBusy, setModalBusy] = useState(false);
 
-  //  manifest 1회 로드 (Vite: VITE_FW_MANIFEST_URL)
+  // manifest 1회 로드 (Vite: VITE_FW_MANIFEST_URL)
   useEffect(() => {
     const url = (import.meta as any).env?.VITE_FW_MANIFEST_URL as string | undefined;
     if (!url) {
