@@ -16,12 +16,6 @@ type AdminDeviceLast = {
   espHex?: string | null;
 };
 
-function clip(s: string, max = 48) {
-  const t = String(s ?? "");
-  if (t.length <= max) return t;
-  return `${t.slice(0, Math.max(0, max - 3))}...`;
-}
-
 function CopyButton(props: { value: string; label?: string }) {
   const { value, label = "복사" } = props;
   const [done, setDone] = useState(false);
