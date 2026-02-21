@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { callAppSync } from "../appsync";
 import { Q_ADMIN_LIST_DEVICE_LAST } from "../queries";
 import { useIsAdmin } from "../hooks/useIsAdmin";
@@ -26,7 +26,9 @@ function CopyButton(props: { value: string; label?: string }) {
   const { value, label = "복사" } = props;
   const [done, setDone] = useState(false);
 
-  async function onCopy() {
+  async function onCopy(e?: MouseEvent<HTMLButtonElement>) {
+    e?.preventDefault();
+    e?.stopPropagation();
     try {
       await navigator.clipboard.writeText(value);
       setDone(true);
@@ -37,8 +39,8 @@ function CopyButton(props: { value: string; label?: string }) {
   }
 
   return (
-    <button
-      onClick={onCopy}
+    <button type="button"
+      onClick={(e) => onCopy(e)}
       style={{
         padding: "4px 8px",
         borderRadius: 8,
@@ -151,6 +153,7 @@ export function AdminPage() {
         <h2 style={{ margin: 0 }}>운영자 페이지</h2>
 
         <button
+          type="button"
           onClick={load}
           disabled={loading}
           style={{
@@ -163,6 +166,34 @@ export function AdminPage() {
         >
           ↻ 전체 상태 새로고침
         </button>
+
+
+<button
+  type="button"
+  onClick={() => {
+    const allOpen =
+      sorted.length > 0 && sorted.every((d) => expanded[d.deviceId]);
+    if (allOpen) {
+      setExpanded({});
+    } else {
+      const next: Record<string, boolean> = {};
+      for (const d of sorted) next[d.deviceId] = true;
+      setExpanded(next);
+    }
+  }}
+  style={{
+    padding: "6px 10px",
+    borderRadius: 8,
+    border: "1px solid #ccc",
+    background: "white",
+    cursor: "pointer",
+  }}
+  title="현재 목록의 상세를 한 번에 펼치거나 접습니다."
+>
+  {sorted.length > 0 && sorted.every((d) => expanded[d.deviceId])
+    ? "상세 전체 닫기"
+    : "상세 전체 펼치기"}
+</button>
 
         <span style={{ fontSize: 12, color: "#777" }}>
           총 {sorted.length}대
@@ -281,7 +312,7 @@ export function AdminPage() {
                       <div style={{ color: "#666" }}>plc_hex (last)</div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                         <span style={{ fontFamily: "monospace", wordBreak: "break-all" }}>
-                          {it.plcHex ? clip(it.plcHex, 96) : "-"}
+                          {it.plcHex ??  "-"}
                         </span>
                         {it.plcHex ? <CopyButton value={it.plcHex} /> : null}
                       </div>
@@ -289,7 +320,7 @@ export function AdminPage() {
                       <div style={{ color: "#666" }}>esp_hex (last)</div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                         <span style={{ fontFamily: "monospace", wordBreak: "break-all" }}>
-                          {it.espHex ? clip(it.espHex, 96) : "-"}
+                          {it.espHex ??  "-"}
                         </span>
                         {it.espHex ? <CopyButton value={it.espHex} /> : null}
                       </div>
