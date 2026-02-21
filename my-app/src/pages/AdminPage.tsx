@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { callAppSync } from "../appsync";
-import { Q_ADMIN_LIST_DEVICE_LAST } from "../queries";
+import { M_ADMIN_TRIGGER_OTA, Q_ADMIN_LIST_DEVICE_LAST, Q_GET_DEVICE_EVENTS } from "../queries";
 import { useIsAdmin } from "../hooks/useIsAdmin";
+import type { DeviceEvent } from "../types";
 
 type AdminDeviceLast = {
   deviceId: string;
@@ -83,16 +84,119 @@ function computeStatus(lastServerTsMs: number | null) {
   return { text: "🟢 온라인", tone: "online" as const };
 }
 
+type OtaUiState =
+  | { state: "idle" }
+  | { state: "requested"; requestedAtMs: number }
+  | { state: "started"; requestedAtMs: number; startedAtMs?: number | null }
+  | { state: "done"; requestedAtMs: number; doneAtMs?: number | null }
+  | { state: "timeout"; requestedAtMs: number }
+  | { state: "failed"; requestedAtMs: number; message?: string };
 
-
-function statusRank(lastMs: number | null) {
-  // lastMs: epoch ms
-  if (!lastMs) return 3; // unknown 맨 아래
-  const diffMin = (Date.now() - lastMs) / 60000;
-  if (diffMin > 20) return 2; // offline
-  if (diffMin > 10) return 1; // warn
-  return 0; // online
+function parseEventMs(ev: DeviceEvent): number | null {
+  // 1) eventKey에 ts#<epochMs>#... 형태가 있으면 그걸 우선
+  const ek = String(ev.eventKey ?? "");
+  const m = ek.match(/ts#(\d{10,16})/);
+  if (m?.[1]) {
+    const n = Number(m[1]);
+    return normalizeEpochMs(n);
+  }
+  // 2) ts 필드가 있다면 사용(초/밀리초 혼재 대비)
+  const t = (ev as any).ts;
+  if (typeof t === "number") return normalizeEpochMs(t);
+  return null;
 }
+
+function formatLeft(ms: number) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  const mm = Math.floor(s / 60);
+  const ss = s % 60;
+  return `${mm}:${pad2(ss)}`;
+}
+
+function ConfirmModal(props: {
+  open: boolean;
+  title: string;
+  body: React.ReactNode;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm: () => void;
+  onClose: () => void;
+  busy?: boolean;
+}) {
+  if (!props.open) return null;
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.35)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999,
+        padding: 16,
+      }}
+      onMouseDown={props.onClose}
+    >
+      <div
+        style={{
+          width: "min(520px, 100%)",
+          background: "white",
+          borderRadius: 14,
+          border: "1px solid #e6e6e6",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div style={{ padding: 14, borderBottom: "1px solid #eee" }}>
+          <div style={{ fontWeight: 700 }}>{props.title}</div>
+        </div>
+        <div style={{ padding: 14, fontSize: 13, color: "#333" }}>{props.body}</div>
+        <div
+          style={{
+            padding: 14,
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 10,
+            borderTop: "1px solid #eee",
+          }}
+        >
+          <button
+            type="button"
+            onClick={props.onClose}
+            disabled={props.busy}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              background: "white",
+              cursor: props.busy ? "not-allowed" : "pointer",
+            }}
+          >
+            {props.cancelText ?? "취소"}
+          </button>
+          <button
+            type="button"
+            onClick={props.onConfirm}
+            disabled={props.busy}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "1px solid #222",
+              background: "#111",
+              color: "white",
+              cursor: props.busy ? "not-allowed" : "pointer",
+              fontWeight: 700,
+            }}
+          >
+            {props.busy ? "처리 중…" : props.confirmText ?? "업데이트 진행"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AdminPage() {
   const { isAdmin, loading: adminLoading, error: adminErr } = useIsAdmin();
   const [items, setItems] = useState<AdminDeviceLast[]>([]);
@@ -100,13 +204,21 @@ export function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
+  // OTA UI 상태 (deviceId별)
+  const [otaUi, setOtaUi] = useState<Record<string, OtaUiState>>({});
+  const timersRef = useRef<Record<string, number>>({});
+  const [modal, setModal] = useState<{ open: boolean; deviceId?: string; swVersion?: string | null }>({
+    open: false,
+  });
+  const [modalBusy, setModalBusy] = useState(false);
+
   async function load() {
     setLoading(true);
     setError(null);
     try {
       const data = await callAppSync<{ adminListDeviceLast: AdminDeviceLast[] }>(
         Q_ADMIN_LIST_DEVICE_LAST,
-        { limit: 200 }
+        { limit: 300 }
       );
       setItems(data.adminListDeviceLast ?? []);
     } catch (e: any) {
@@ -115,6 +227,118 @@ export function AdminPage() {
       setLoading(false);
     }
   }
+
+  async function pollEventsOnce(deviceId: string, requestedAtMs: number) {
+    const data = await callAppSync<{ getDeviceEvents: DeviceEvent[] }>(Q_GET_DEVICE_EVENTS, {
+      deviceId,
+      limit: 20,
+    });
+    const events = data.getDeviceEvents ?? [];
+    // 최신 이벤트부터/또는 어떤 순서로 오든, 시간으로 판정
+    let hasStart = false;
+    let hasDone = false;
+    let startMs: number | null = null;
+    let doneMs: number | null = null;
+    let failMsg: string | undefined;
+
+    for (const ev of events) {
+      const t = parseEventMs(ev);
+      if (t && t + 2000 < requestedAtMs) continue; // 요청 이전(약간의 시계 오차) 이벤트는 무시
+      const ty = String((ev as any).eventType ?? (ev as any).type ?? "");
+      if (ty === "OTA_START") {
+        hasStart = true;
+        startMs = startMs ? Math.min(startMs, t ?? startMs) : t;
+      } else if (ty === "OTA_DONE") {
+        hasDone = true;
+        doneMs = doneMs ? Math.min(doneMs, t ?? doneMs) : t;
+      } else if (ty === "OTA_FAIL") {
+        // 옵션: 가능한 구간만 보내는 실패 이벤트가 있으면 즉시 실패로 표시
+        failMsg = (ev as any).detail?.reason ?? (ev as any).detail ?? undefined;
+      }
+    }
+
+    if (failMsg) {
+      setOtaUi((p) => ({ ...p, [deviceId]: { state: "failed", requestedAtMs, message: String(failMsg) } }));
+      return { stop: true };
+    }
+
+    if (hasDone) {
+      setOtaUi((p) => ({ ...p, [deviceId]: { state: "done", requestedAtMs, doneAtMs: doneMs } }));
+      return { stop: true };
+    }
+
+    if (hasStart) {
+      setOtaUi((p) => ({ ...p, [deviceId]: { state: "started", requestedAtMs, startedAtMs: startMs } }));
+      return { stop: false };
+    }
+
+    // 아직 이벤트가 없으면 requested 유지
+    setOtaUi((p) => {
+      const cur = p[deviceId];
+      if (cur?.state === "started" || cur?.state === "done" || cur?.state === "failed") return p;
+      return { ...p, [deviceId]: { state: "requested", requestedAtMs } };
+    });
+
+    return { stop: false };
+  }
+
+  function stopPolling(deviceId: string) {
+    const t = timersRef.current[deviceId];
+    if (t) {
+      window.clearInterval(t);
+      delete timersRef.current[deviceId];
+    }
+  }
+
+  async function startOtaFlow(deviceId: string) {
+    // 중복 시작 방지(진행 중이면 모달만 닫음)
+    const cur = otaUi[deviceId];
+    if (cur?.state === "requested" || cur?.state === "started") return;
+
+    const requestedAtMs = Date.now();
+    setOtaUi((p) => ({ ...p, [deviceId]: { state: "requested", requestedAtMs } }));
+
+    // 1) 트리거 mutation
+    await callAppSync<{ adminTriggerOta: boolean }>(M_ADMIN_TRIGGER_OTA, { deviceId });
+
+    // 2) 폴링: 5초 간격, 최대 5분
+    const deadline = requestedAtMs + 5 * 60 * 1000;
+    // 첫 1회 즉시
+    try {
+      const r = await pollEventsOnce(deviceId, requestedAtMs);
+      if (r.stop) return;
+    } catch {
+      // 폴링은 best-effort. 다음 tick에서 다시 시도
+    }
+
+    stopPolling(deviceId);
+    const intervalId = window.setInterval(async () => {
+      // 타임아웃
+      if (Date.now() > deadline) {
+        stopPolling(deviceId);
+        setOtaUi((p) => ({ ...p, [deviceId]: { state: "timeout", requestedAtMs } }));
+        return;
+      }
+      try {
+        const r = await pollEventsOnce(deviceId, requestedAtMs);
+        if (r.stop) {
+          stopPolling(deviceId);
+        }
+      } catch {
+        // ignore
+      }
+    }, 5000);
+
+    timersRef.current[deviceId] = intervalId;
+  }
+
+  useEffect(() => {
+    return () => {
+      // unmount 시 타이머 정리
+      for (const k of Object.keys(timersRef.current)) stopPolling(k);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (isAdmin) load();
@@ -127,13 +351,6 @@ export function AdminPage() {
     arr.sort((a, b) => {
       const ta = normalizeEpochMs(a.lastServerTs ?? null) ?? 0;
       const tb = normalizeEpochMs(b.lastServerTs ?? null) ?? 0;
-
-      // ✅ 기본 정렬: 온라인(최근 10분) > 연결 불안정(10~20분) > 오프라인(20분+)
-      const ra = statusRank(ta);
-      const rb = statusRank(tb);
-      if (ra !== rb) return ra - rb;
-
-      // 같은 상태 그룹에서는 최근 수신 시각 내림차순
       return tb - ta;
     });
     return arr;
@@ -160,6 +377,46 @@ export function AdminPage() {
 
   return (
     <div style={{ padding: 16, fontFamily: "sans-serif" }}>
+      <ConfirmModal
+        open={modal.open}
+        title="펌웨어 업데이트(FOTA) 확인"
+        busy={modalBusy}
+        body={
+          <div style={{ display: "grid", gap: 10 }}>
+            <div style={{ color: "#b00", fontWeight: 700 }}>
+              ⚠️ 업데이트 중 재부팅이 발생합니다. 작업 중이라면 진행하지 마세요.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 6, fontSize: 12 }}>
+              <div style={{ color: "#666" }}>대상</div>
+              <div style={{ fontFamily: "monospace" }}>{modal.deviceId}</div>
+              <div style={{ color: "#666" }}>현재 버전</div>
+              <div style={{ fontFamily: "monospace" }}>{modal.swVersion ?? "-"}</div>
+              <div style={{ color: "#666" }}>진행 방식</div>
+              <div>단일 디바이스(1대) 업데이트</div>
+            </div>
+            <div style={{ fontSize: 12, color: "#666" }}>
+              실행 후 5분 동안 자동으로 상태를 확인합니다. (OTA_START / OTA_DONE)
+            </div>
+          </div>
+        }
+        onClose={() => {
+          if (!modalBusy) setModal({ open: false });
+        }}
+        onConfirm={async () => {
+          if (!modal.deviceId) return;
+          setModalBusy(true);
+          try {
+            await startOtaFlow(modal.deviceId);
+            setModal({ open: false });
+          } catch (e) {
+            // 화면 상단 error에 표시
+            setError(String((e as any)?.message ?? e));
+          } finally {
+            setModalBusy(false);
+          }
+        }}
+      />
+
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <h2 style={{ margin: 0 }}>운영자 페이지</h2>
 
@@ -297,6 +554,96 @@ export function AdminPage() {
 
                 {isOpen ? (
                   <div style={{ padding: "0 12px 12px 12px" }}>
+                    {/* OTA 상태 */}
+                    <div style={{ marginBottom: 10 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 10,
+                          padding: 10,
+                          border: "1px solid #eee",
+                          borderRadius: 10,
+                          background: "#fff",
+                        }}
+                      >
+                        <div style={{ fontSize: 12, color: "#333" }}>
+                          <div style={{ fontWeight: 700, marginBottom: 2 }}>FOTA</div>
+                          {(() => {
+                            const st = otaUi[it.deviceId] ?? { state: "idle" as const };
+                            if (st.state === "idle") return <div style={{ color: "#666" }}>대기</div>;
+                            if (st.state === "requested") {
+                              const left = 5 * 60 * 1000 - (Date.now() - st.requestedAtMs);
+                              return (
+                                <div>
+                                  요청됨 · 확인 중… <span style={{ color: "#666" }}>({formatLeft(left)})</span>
+                                </div>
+                              );
+                            }
+                            if (st.state === "started") {
+                              const left = 5 * 60 * 1000 - (Date.now() - st.requestedAtMs);
+                              return (
+                                <div>
+                                  다운로드 시작 감지 · 완료 대기… <span style={{ color: "#666" }}>({formatLeft(left)})</span>
+                                </div>
+                              );
+                            }
+                            if (st.state === "done") return <div style={{ color: "#0a7" }}>업데이트 완료 ✅</div>;
+                            if (st.state === "timeout") return <div style={{ color: "#b00" }}>실패(타임아웃) ❌</div>;
+                            if (st.state === "failed") return <div style={{ color: "#b00" }}>실패 ❌ {st.message ? `(${st.message})` : ""}</div>;
+                            return null;
+                          })()}
+                        </div>
+
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setModal({ open: true, deviceId: it.deviceId, swVersion: it.swVersion ?? null });
+                            }}
+                            style={{
+                              padding: "8px 10px",
+                              borderRadius: 10,
+                              border: "1px solid #222",
+                              background: "#111",
+                              color: "white",
+                              cursor: "pointer",
+                              fontSize: 12,
+                              fontWeight: 700,
+                            }}
+                            title="이 디바이스에 대해 OTA를 실행합니다"
+                          >
+                            FOTA 실행
+                          </button>
+                          {(otaUi[it.deviceId]?.state === "requested" || otaUi[it.deviceId]?.state === "started") ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // UI 폴링만 중지(디바이스 OTA 자체를 멈추진 않음)
+                                stopPolling(it.deviceId);
+                                const cur = otaUi[it.deviceId];
+                                if (cur && (cur.state === "requested" || cur.state === "started")) {
+                                  setOtaUi((p) => ({ ...p, [it.deviceId]: { state: "idle" } }));
+                                }
+                              }}
+                              style={{
+                                padding: "8px 10px",
+                                borderRadius: 10,
+                                border: "1px solid #ddd",
+                                background: "white",
+                                cursor: "pointer",
+                                fontSize: 12,
+                              }}
+                              title="현재 화면의 상태 확인(폴링)만 중지합니다"
+                            >
+                              확인 중지
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+
                     <div
                       style={{
                         border: "1px solid #eee",

@@ -89,3 +89,23 @@ export const Q_ADMIN_LIST_DEVICE_LAST = /* GraphQL */ `
     }
   }
 `;
+
+// ✅ 운영자: OTA 트리거(1대)
+export const M_ADMIN_TRIGGER_OTA = /* GraphQL */ `
+  mutation AdminTriggerOta($deviceId: String!) {
+    adminTriggerOta(deviceId: $deviceId)
+  }
+`;
+
+// ✅ 운영자: 디바이스 이벤트 조회(최근 N개)
+export const Q_GET_DEVICE_EVENTS = /* GraphQL */ `
+  query GetDeviceEvents($deviceId: String!, $limit: Int) {
+    getDeviceEvents(deviceId: $deviceId, limit: $limit) {
+      deviceId
+      eventKey
+      eventType
+      ts
+      detail
+    }
+  }
+`;
