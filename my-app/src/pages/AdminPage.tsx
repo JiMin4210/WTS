@@ -83,6 +83,16 @@ function computeStatus(lastServerTsMs: number | null) {
   return { text: "🟢 온라인", tone: "online" as const };
 }
 
+
+
+function statusRank(lastMs: number | null) {
+  // lastMs: epoch ms
+  if (!lastMs) return 3; // unknown 맨 아래
+  const diffMin = (Date.now() - lastMs) / 60000;
+  if (diffMin > 20) return 2; // offline
+  if (diffMin > 10) return 1; // warn
+  return 0; // online
+}
 export function AdminPage() {
   const { isAdmin, loading: adminLoading, error: adminErr } = useIsAdmin();
   const [items, setItems] = useState<AdminDeviceLast[]>([]);
@@ -96,7 +106,7 @@ export function AdminPage() {
     try {
       const data = await callAppSync<{ adminListDeviceLast: AdminDeviceLast[] }>(
         Q_ADMIN_LIST_DEVICE_LAST,
-        { limit: 300 }
+        { limit: 200 }
       );
       setItems(data.adminListDeviceLast ?? []);
     } catch (e: any) {
@@ -117,6 +127,13 @@ export function AdminPage() {
     arr.sort((a, b) => {
       const ta = normalizeEpochMs(a.lastServerTs ?? null) ?? 0;
       const tb = normalizeEpochMs(b.lastServerTs ?? null) ?? 0;
+
+      // ✅ 기본 정렬: 온라인(최근 10분) > 연결 불안정(10~20분) > 오프라인(20분+)
+      const ra = statusRank(ta);
+      const rb = statusRank(tb);
+      if (ra !== rb) return ra - rb;
+
+      // 같은 상태 그룹에서는 최근 수신 시각 내림차순
       return tb - ta;
     });
     return arr;
