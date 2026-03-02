@@ -104,7 +104,7 @@ export const Q_GET_DEVICE_EVENTS = /* GraphQL */ `
       deviceId
       eventKey
       eventType
-      ts
+      tsMs
       detail
     }
   }

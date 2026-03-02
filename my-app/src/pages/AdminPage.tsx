@@ -106,7 +106,7 @@ function parseEventMs(ev: DeviceEvent): number | null {
     return normalizeEpochMs(n);
   }
   // 2) ts 필드가 있다면 사용(초/밀리초 혼재 대비)
-  const t = (ev as any).ts;
+  const t = (ev as any).tsMs;
   if (typeof t === "number") return normalizeEpochMs(t);
   return null;
 }
@@ -319,7 +319,7 @@ export function AdminPage() {
 
     for (const ev of events) {
       const t = parseEventMs(ev);
-      if (t && t + 2000 < requestedAtMs) continue; // 요청 이전(약간의 시계 오차) 이벤트는 무시
+      if (t && t + 5000 < requestedAtMs) continue; // 요청 이전(약간의 시계 오차) 이벤트는 무시
       const ty = String((ev as any).eventType ?? (ev as any).type ?? "");
       if (ty === "OTA_START") {
         hasStart = true;

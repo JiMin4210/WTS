@@ -12,6 +12,6 @@ export type DeviceEvent = {
   deviceId: string;
   eventKey: string;
   eventType: string;
-  ts?: number | null;
+  tsMs?: number | null;
   detail?: any;
 };
